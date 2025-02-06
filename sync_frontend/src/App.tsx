@@ -1,8 +1,10 @@
-
-import "./App.css";
-
-function App() {
-  return <div className="bg-red-500">hello</div>;
-}
+import Dashboard from "./pages/Dashboard/Dashboard";
+const App = () => {
+  return (
+    <div className="w-screen h-screen ">
+      <Dashboard />
+    </div>
+  );
+};
 
 export default App;

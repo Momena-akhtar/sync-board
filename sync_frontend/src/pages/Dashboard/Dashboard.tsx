@@ -1,5 +1,5 @@
 import SidePanel from "./Components/SidePanel";
-import MainPanel from "./Components/MainPanel";
+import MainPanel from "./Components/MainPanel/MainPanel";
 
 const Dashboard = () => {
   return (

@@ -10,6 +10,6 @@ export const ProjOptionsDummyData = [
 ];
 
 export const image_paths = [
-  "sync_frontend/src/pages/Dashboard/Components/assets/pat1.png",
-  "sync_frontend/src/pages/Dashboard/Components/assets/pat2.png",
+  "/src/pages/Dashboard/Components/assets/pat1.png",
+  "/src/pages/Dashboard/Components/assets/pat2.png",
 ];

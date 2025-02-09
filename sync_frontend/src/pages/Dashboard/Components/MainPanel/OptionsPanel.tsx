@@ -33,7 +33,7 @@ const OptionsPanel = () => {
   ];
 
   return (
-    <div className="sm:flex-2 bg-transparent flex justify-between items-center p-5">
+    <div className="sm:flex-2 bg-transparent flex justify-between items-center p-6">
       {options.map((opt, index) => (
         <Option
           key={index} // Using index as the key

@@ -18,7 +18,7 @@ const Option: React.FC<OptionProps> = ({
 
   return (
     <div
-      className="flex-1 flex items-center gap-2 p-2 bg-stone-600 m-4 min-h-18 max-h-20 rounded-md cursor-pointer"
+      className="flex-1 flex items-center gap-2 p-2 bg-stone-600 m-4 min-h-18 rounded-md cursor-pointer"
       style={{ backgroundColor: hover ? hover_color : "#57534e" }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}

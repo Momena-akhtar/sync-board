@@ -1,10 +1,13 @@
 import { FaUser } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const SidePanel = () => {
+  const { user } = useAuth(); // Access loading state
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(false);
+
 
   const toggleTheme = () => {
     if (document.body.classList.contains("dark")) {
@@ -17,6 +20,28 @@ const SidePanel = () => {
       setIsDark(true);
     }
   };
+  const getDisplayName = () => {
+
+    if (user === null) return "Guest";
+    if (!user.displayName && user.isAnonymous) return "Guest User";
+    
+    return user.displayName || user.email?.split("@")[0] || "User";
+  };
+
+  const getPhoto = () => {
+    // Get the original photoURL from Firebase
+    const originalUrl = user?.photoURL;
+  
+    // Remove the size parameter (=s96-c) for full resolution
+    const fullSizeUrl = originalUrl?.replace(/=s\d+-c$/, "");
+  
+    // Use the full-size URL or fallback
+    if (fullSizeUrl) {
+      return <img src={fullSizeUrl} alt="Profile" className="w-6 h-6 rounded-full" />;
+    }
+    return <FaUser className="text-white text-1xl" />;
+  };
+  
   const handleDraftsEvent = () => {
     navigate("/dashboard/drafts");
   };
@@ -31,8 +56,8 @@ const SidePanel = () => {
     <div className="sm:flex-1 bg-[#1E1E1E] font-['Kumbh_Sans'] border-r border-[#383838] flex flex-col items-center p-4">
       {/* User Section */}
       <div className="flex items-center gap-2 w-full">
-        <FaUser className="text-white text-1xl" />
-        <span className="text-white">Username</span>
+        {getPhoto()}
+        <span className="text-white">{getDisplayName()}</span>
       </div>
   
       {/* Toggle Theme Section */}

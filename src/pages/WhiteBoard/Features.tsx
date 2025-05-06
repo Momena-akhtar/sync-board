@@ -1,8 +1,12 @@
 import { FaUserCircle, FaPlay } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import { FiPlus, FiMoreHorizontal, FiMinus } from "react-icons/fi";
+import {  FiMoreHorizontal, FiMinus } from "react-icons/fi";
+import React from "react";
 
-const Features = () => {
+interface FeaturesProps {
+    title: string;
+}
+const Features: React.FC<FeaturesProps> = ({ title }) => {
     return (
         <div className="w-full bg-[#181818] font-[Kumbh_Sans]">
             <div className="flex items-center justify-between bg-[#181818] p-2">
@@ -119,8 +123,8 @@ const Features = () => {
             </div>
 
             {/* Export Button */}
-            <button className="mt-5 w-full bg-[#282828] text-gray-400 text-xs p-2 rounded-lg cursor-not-allowed">
-                Export Untitled
+            <button className="mt-5 w-full bg-gradient-to-r from-[#405CE3] to-[#6A82FB] text-white text-sm font-semibold p-2 rounded-lg cursor-pointer shadow-lg hover:opacity-90 transition-opacity duration-300">
+                Export {title}
             </button>
             <hr className="border-none h-[2px] w-full mt-6 mb-4 bg-[#383838]" />
         </div>

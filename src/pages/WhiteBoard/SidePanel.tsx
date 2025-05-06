@@ -1,12 +1,19 @@
+import React from "react";
 
-const SidePanel = () => {
+interface SidePanelProps {
+    title: string;
+    setTitle: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const SidePanel: React.FC<SidePanelProps> = ({ title, setTitle }) => {
     return (
         <div>
             <div className="text-sm font-semibold mb-4 flex items-center  p-2">
                 {/* <FaProjectDiagram className="mr-2 text-white" /> */}
                 <input 
                     type="text" 
-                    defaultValue="Untitled" 
+                    defaultValue={title}
+                    onChange={(e) => setTitle(e.target.value)}    
                     className="bg-transparent rounded-lg outline-none border border-[#383838] p-2 text-white"
                 />
                 <svg 

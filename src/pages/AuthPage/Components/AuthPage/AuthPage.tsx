@@ -1,12 +1,17 @@
-import { signInAsGuest, signInWithGoogle, signInWithGitHub } from "../../../../backend/auth/firebaseConfig";
+import { signInAsGuest, signInWithGoogle, signInWithGitHub } from "../../../../backend/auth/firebase";
 import { useNavigate } from "react-router-dom";
+import { useAuth
 
+ } from "../../../../contexts/AuthContext";
 interface AuthPageProps {
     closeModal: () => void;
   }
   
   const AuthPage: React.FC<AuthPageProps> = ({ closeModal }) => {
+    const { setUser } = useAuth();
     const navigate = useNavigate();
+
+    
     const handleGoogleLogin = async () => {
       const user = await signInWithGoogle();
       if (user) {
@@ -30,6 +35,7 @@ interface AuthPageProps {
       const user = await signInAsGuest();
       if (user) {
         console.log("Guest Login Success:", user);
+        setUser(user); // Set the user in context 
         closeModal();
         navigate("/dashboard"); // Use navigate instead of window.location.href
       }

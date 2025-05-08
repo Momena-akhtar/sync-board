@@ -13,6 +13,7 @@ interface ShapeToolState {
     setIsDrawing?: React.Dispatch<React.SetStateAction<boolean>>;
     setStartPos?: React.Dispatch<React.SetStateAction<{ x: number, y: number } | null>>;
     setCurrentShape?: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
+    currentColor?: string;
 }
 
 interface ShapeToolMoveState {
@@ -102,7 +103,8 @@ export class ShapesToolHandler {
         x: number,
         y: number,
         width: number,
-        height: number
+        height: number,
+        color: string = "#ffffff"
     ): RectangleShape | CircleShape | PolygonShape {
         const baseShape = {
             id: uuidv4(),
@@ -110,8 +112,8 @@ export class ShapesToolHandler {
             y,
             width: Math.max(width, 0),
             height: Math.max(height, 0),
-            fill: "rgba(255, 255, 255, 0.5)",
-            stroke: "#ffffff",
+            fill: color.replace(/^#/, "rgba(") + ", 0.5)",
+            stroke: color,
             strokeWidth: 2,
             isSelected: false
         };
@@ -137,7 +139,7 @@ export class ShapesToolHandler {
     }
 
     static onMouseDown(e: React.MouseEvent, shapeType: string, state: ShapeToolState) {
-        const { setIsDrawing, setStartPos, setCurrentShape } = state;
+        const { setIsDrawing, setStartPos, setCurrentShape, currentColor } = state;
 
         if (!setIsDrawing || !setStartPos || !setCurrentShape) return;
 
@@ -148,12 +150,13 @@ export class ShapesToolHandler {
         setIsDrawing(true);
         setStartPos({ x, y });
 
-        const initialShape = this.createShape(shapeType, x, y, 1, 1);
+        // Create initial shape with minimal size
+        const initialShape = this.createShape(shapeType, x, y, 0, 0, currentColor);
         setCurrentShape(initialShape);
     }
 
-    static onMouseMove(e: React.MouseEvent, shapeType: string, state: ShapeToolMoveState) {
-        const { isDrawing, startPos, currentShape, setCurrentShape } = state;
+    static onMouseMove(e: React.MouseEvent, shapeType: string, state: ShapeToolMoveState & { currentColor?: string }) {
+        const { isDrawing, startPos, currentShape, setCurrentShape, currentColor } = state;
 
         if (!isDrawing || !startPos || !currentShape) return;
 
@@ -166,13 +169,13 @@ export class ShapesToolHandler {
         const x = Math.min(startPos.x, currentX);
         const y = Math.min(startPos.y, currentY);
 
-        let updatedShape: RectangleShape | CircleShape | PolygonShape;
+        let updatedShape: Shape;
 
         if (shapeType === 'circle') {
             const size = Math.max(width, height);
-            updatedShape = this.createShape(shapeType, startPos.x - size/2, startPos.y - size/2, size, size);
+            updatedShape = this.createShape(shapeType, startPos.x - size/2, startPos.y - size/2, size, size, currentColor);
         } else {
-            updatedShape = this.createShape(shapeType, x, y, width, height);
+            updatedShape = this.createShape(shapeType, x, y, width, height, currentColor);
         }
 
         setCurrentShape(updatedShape);
@@ -192,21 +195,15 @@ export class ShapesToolHandler {
 
         if (!isDrawing || !currentShape || !isDrawableShape(currentShape)) return;
 
-        const minSize = 20;
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const currentX = e.clientX - rect.left;
         const currentY = e.clientY - rect.top;
 
         let finalShape: Shape;
 
-        // Check if the shape has been dragged enough to be considered a drag operation
-        const dragDistance = Math.sqrt(
-            Math.pow(currentShape.width, 2) + 
-            Math.pow(currentShape.height, 2)
-        );
-
-        if (dragDistance < minSize) {
-            // If barely dragged, create a standard-sized shape centered on the click point
+        // If the shape has no size, it means it was just a click (no drag)
+        if (currentShape.width === 0 && currentShape.height === 0) {
+            // Create a standard-sized shape centered on the click point
             finalShape = this.createShape(
                 shapeType,
                 currentShape.x - STANDARD_SHAPE_SIZE / 2,
@@ -215,7 +212,7 @@ export class ShapesToolHandler {
                 STANDARD_SHAPE_SIZE
             );
         } else {
-            // Use the current shape as is for drag operations
+            // Use the current shape as is (it was created by dragging)
             finalShape = currentShape;
         }
 

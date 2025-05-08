@@ -22,45 +22,42 @@ export const ImageToolHandler = {
     fileInput.accept = 'image/*';
     fileInput.style.display = 'none';
     
+    // Get the canvas element and its scroll position
+    const canvas = e.currentTarget as HTMLElement;
+    const rect = canvas.getBoundingClientRect();
+    const scrollLeft = canvas.scrollLeft;
+    const scrollTop = canvas.scrollTop;
+    
     // Handle file selection
     fileInput.onchange = (event) => {
       const target = event.target as HTMLInputElement;
       const file = target.files?.[0];
       
       if (file) {
-        // Set loading state if available
         if (options.setIsLoading) {
           options.setIsLoading(true);
         }
         
-        // Read the selected file
         const reader = new FileReader();
         
-        // Set up error handling
         reader.onerror = () => {
           if (options.setIsLoading) {
             options.setIsLoading(false);
           }
           console.error('Error reading file');
-          // Could add toast notification here
         };
         
         reader.onload = (loadEvent) => {
-          // Get cursor position for image placement
-          const imageX = e.clientX;
-          const imageY = e.clientY;
-          
-          // Create an Image object to get natural dimensions
           const img = new Image();
           img.onload = () => {
             // Calculate aspect ratio preserving dimensions
             const aspectRatio = img.naturalWidth / img.naturalHeight;
-            const maxSize = 500; // Maximum initial dimension
+            const maxSize = 300; // Maximum size for better usability
             
             let width = img.naturalWidth;
             let height = img.naturalHeight;
             
-            // Scale down large images
+            // Scale down large images while maintaining aspect ratio
             if (width > maxSize || height > maxSize) {
               if (width > height) {
                 width = maxSize;
@@ -70,6 +67,10 @@ export const ImageToolHandler = {
                 width = height * aspectRatio;
               }
             }
+            
+            // Calculate position relative to canvas, accounting for scroll
+            const imageX = e.clientX - rect.left + scrollLeft;
+            const imageY = e.clientY - rect.top + scrollTop;
             
             // Create new image object with proper dimensions
             const newImage: WhiteboardObject = {
@@ -84,16 +85,12 @@ export const ImageToolHandler = {
               isSelected: true
             };
             
-            // Add new image to objects array
             options.setObjects(prev => [...prev, newImage]);
-
             
-            // Select the newly added image for immediate resizing if needed
             if (options.setSelectedShapeId) {
               options.setSelectedShapeId(newImage.id);
             }
             
-            // Clear loading state
             if (options.setIsLoading) {
               options.setIsLoading(false);
             }
@@ -112,11 +109,9 @@ export const ImageToolHandler = {
         reader.readAsDataURL(file);
       }
       
-      // Remove the file input from DOM
       document.body.removeChild(fileInput);
     };
     
-    // Add to DOM and trigger click
     document.body.appendChild(fileInput);
     fileInput.click();
   },

@@ -16,6 +16,7 @@ const MainBoard = () => {
   const [isErasing, setIsErasing] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentColor, setCurrentColor] = useState<string>("#ffffff");
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
     null
   );
@@ -90,6 +91,11 @@ const MainBoard = () => {
       setActiveTool('move');
     }
   }, [isDrawing, currentShape, activeTool]);
+
+  // Update PenToolHandler color when currentColor changes
+  useEffect(() => {
+    PenToolHandler.setPenColor(currentColor);
+  }, [currentColor]);
 
   const handleShapeClick = (shapeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -238,6 +244,7 @@ const MainBoard = () => {
         setIsDrawing,
         setStartPos,
         setCurrentShape,
+        currentColor,
       });
     }
   };
@@ -709,7 +716,12 @@ const MainBoard = () => {
         </div>
       )}
       <div className="fixed bottom-8 left-0 w-full flex justify-center">
-        <BottomPanel activeTool={activeTool} setActiveTool={setActiveTool} />
+        <BottomPanel 
+          activeTool={activeTool} 
+          setActiveTool={setActiveTool}
+          currentColor={currentColor}
+          setCurrentColor={setCurrentColor}
+        />
       </div>
     </div>
   );

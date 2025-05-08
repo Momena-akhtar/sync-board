@@ -1,12 +1,44 @@
 import { FaUserCircle, FaPlay } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import {  FiMoreHorizontal, FiMinus } from "react-icons/fi";
-import React from "react";
+import { FiMoreHorizontal, FiMinus } from "react-icons/fi";
+import React, { useState } from 'react';
+import { ExportHandler } from './Handlers/Tools/ExportHandler';
+import { WhiteboardObject } from './Types/WhiteboardTypes';
 
 interface FeaturesProps {
     title: string;
+    whiteboardElements?: WhiteboardObject[];
 }
-const Features: React.FC<FeaturesProps> = ({ title }) => {
+const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
+    const [scale, setScale] = useState<number>(1);
+    const [format, setFormat] = useState<'PNG' | 'JPG' | 'PDF'>('PNG');
+
+    const handleExport = () => {
+        // Get the main whiteboard container element
+        const boardElement = document.querySelector('.relative.w-full.h-full.overflow-auto') as HTMLElement;
+        if (!boardElement) {
+            console.error('Could not find whiteboard element');
+            return;
+        }
+
+        // Get the whiteboard elements from the MainBoard component's state
+        // You'll need to pass this as a prop from MainBoard to Features
+        const elements = whiteboardElements || [];
+    
+        ExportHandler.exportBoard(boardElement, {
+            format,
+            filename: title || 'whiteboard',
+            scale
+        }, elements);
+    };
+    const handleScaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setScale(parseFloat(e.target.value));
+    };
+
+    const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setFormat(e.target.value as 'PNG' | 'JPG' | 'PDF');
+    };
+
     return (
         <div className="w-full bg-[#181818] font-[Kumbh_Sans]">
             <div className="flex items-center justify-between bg-[#181818] p-2">
@@ -99,20 +131,28 @@ const Features: React.FC<FeaturesProps> = ({ title }) => {
                 </svg>
             </div>
              {/* Selection Dropdowns */}
-             <div className="flex items-center text-xs justify-between mt-4">
-                <select className="border border-[#383838] w-15 text-white text-xs p-1 rounded-lg outline-none">
-                    <option className="bg-[#383838]">0.5x</option>
-                    <option className="bg-[#383838]">0.75x</option>
-                    <option className="bg-[#383838]">1x</option>
-                    <option className="bg-[#383838]">1.5x</option>
-                    <option className="bg-[#383838]">2x</option>
-                    <option className="bg-[#383838]">3x</option>
+             <div className="flex items-center justify-between gap-2 mt-2 px-2">
+                <select 
+                    className="border border-[#383838] w-20 text-white text-xs p-1 rounded-lg outline-none bg-[#1e1e1e]"
+                    value={scale}
+                    onChange={handleScaleChange}
+                >
+                    <option value={0.5}>0.5x</option>
+                    <option value={0.75}>0.75x</option>
+                    <option value={1}>1x</option>
+                    <option value={1.5}>1.5x</option>
+                    <option value={2}>2x</option>
+                    <option value={3}>3x</option>
                 </select>
 
-                <select className="border border-[#383838] text-white w-25 text-xs p-1 rounded-lg outline-none">
-                    <option className="bg-[#383838]">PNG</option>
-                    <option className="bg-[#383838]">JPG</option>
-                    <option className="bg-[#383838]">PDF</option>
+                <select 
+                    className="border border-[#383838] text-white w-20 text-xs p-1 rounded-lg outline-none bg-[#1e1e1e]"
+                    value={format}
+                    onChange={handleFormatChange}
+                >
+                    <option value="PNG">PNG</option>
+                    <option value="JPG">JPG</option>
+                    <option value="PDF">PDF</option>
                 </select>
 
                 {/* More Options Button */}
@@ -123,7 +163,10 @@ const Features: React.FC<FeaturesProps> = ({ title }) => {
             </div>
 
             {/* Export Button */}
-            <button className="mt-5 w-full bg-gradient-to-r from-[#405CE3] to-[#6A82FB] text-white text-sm font-semibold p-2 rounded-lg cursor-pointer shadow-lg hover:opacity-90 transition-opacity duration-300">
+            <button 
+                className="mt-5 w-full bg-gradient-to-r from-[#405CE3] to-[#6A82FB] text-white text-sm font-semibold p-2 rounded-lg cursor-pointer shadow-lg hover:opacity-90 transition-opacity duration-300"
+                onClick={handleExport}
+            >
                 Export {title}
             </button>
             <hr className="border-none h-[2px] w-full mt-6 mb-4 bg-[#383838]" />

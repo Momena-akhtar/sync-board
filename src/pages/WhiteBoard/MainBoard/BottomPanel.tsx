@@ -70,7 +70,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
 
     return (
         <div 
-            className="relative flex justify-center items-center gap-4 bg-transparent backdrop-blur-lg border border-[#454545] font-[Kumbh_Sans] p-4 rounded-[20px]"
+            className="relative flex justify-center items-center gap-4 bg-transparent backdrop-blur-2xl border border-[#454545] font-[Kumbh_Sans] p-4 rounded-[40px]"
             onClick={handleClickOutside}
         >
             {/* Color Picker */}

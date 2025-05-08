@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import BottomPanel from "./BottomPanel";
-import { WhiteboardObject } from "../Types/WhiteboardTypes";
+import { WhiteboardObject, isShape } from "../Types/WhiteboardTypes";
 import { TextToolHandler } from "../Handlers/Tools/TextToolHandler";
 import { FrameToolHandler } from "../Handlers/Tools/FrameToolHandler";
 import { PenToolHandler } from "../Handlers/Tools/PenToolHandler";
@@ -72,71 +72,40 @@ const MainBoard = () => {
       textareaRefs.current[editingTextObject.id]?.focus();
     }
   }, [objects]);
+
+  // Add cleanup effect when changing tools
+  useEffect(() => {
+    // Clean up any active shape drawing state when changing tools
+    if (!['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(activeTool)) {
+      setCurrentShape(null);
+      setIsDrawing(false);
+      setStartPos(null);
+    }
+  }, [activeTool]);
+
+  // Add effect to handle shape drawing completion
+  useEffect(() => {
+    if (isDrawing === false && currentShape === null && ['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(activeTool)) {
+      // Switch back to move tool after shape is drawn
+      setActiveTool('move');
+    }
+  }, [isDrawing, currentShape, activeTool]);
+
   const handleShapeClick = (shapeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (activeTool === "move") {
-      // Select the shape when in move mode
-      ShapesToolHandler.selectShape(shapeId, {
-        objects,
-        setObjects,
-        setSelectedShapeId,
-      });
+      ShapesToolHandler.selectShape(shapeId, objects, setObjects);
+      setSelectedShapeId(shapeId);
     }
   };
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Delete key pressed and we have a selected object
-      if (e.key === "Delete" && selectedShapeId) {
-        const selectedObject = objects.find(
-          (obj) => obj.id === selectedShapeId
-        );
 
-        if (selectedObject) {
-          if (selectedObject.type === "image") {
-            ImageToolHandler.deleteImage(selectedShapeId, {
-              objects,
-              setObjects,
-              setSelectedShapeId,
-            });
-          } else if (
-            [
-              "rectangle",
-              "circle",
-              "triangle",
-              "diamond",
-              "hexagon",
-              "arrow",
-            ].includes(selectedObject.type)
-          ) {
-            // Existing shape deletion logic
-            const updatedObjects = objects.filter(
-              (obj) => obj.id !== selectedShapeId
-            );
-            setObjects(updatedObjects);
-            setSelectedShapeId(null);
-          }
-        }
-      }
-    };
-
-    // Add event listener
-    window.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [objects, selectedShapeId, setObjects, setSelectedShapeId]);
   const handleCanvasClick = (e: React.MouseEvent) => {
-    // Deselect shapes when clicking on empty canvas in move mode
     if (activeTool === "move" && selectedShapeId) {
-      ShapesToolHandler.deselectAllShapes({
-        objects,
-        setObjects,
-        setSelectedShapeId,
-      });
+      ShapesToolHandler.deselectAllShapes(objects, setObjects);
+      setSelectedShapeId(null);
     }
   };
+
   const handleResizeStart = (
     id: string,
     handlePos: string,
@@ -253,8 +222,6 @@ const MainBoard = () => {
       });
       // Switch to move tool after initiating image upload
       setActiveTool("move");
-      console.log("objects after upload:", objects);
-
     } else if (
       [
         "rectangle",
@@ -272,8 +239,6 @@ const MainBoard = () => {
         setStartPos,
         setCurrentShape,
       });
-    } else if (activeTool === "move" && selectedShapeId) {
-      // Logic for moving/manipulating selected shapes will be handled by separate click events on the shapes
     }
   };
 
@@ -297,12 +262,15 @@ const MainBoard = () => {
         objects,
         setObjects,
       });
-    }
-    // Handle shape drawing
-    else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon"].includes(
-        activeTool
-      )
+    } else if (
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseMove(e, activeTool, {
         isDrawing,
@@ -343,7 +311,7 @@ const MainBoard = () => {
     }
     // Handle shape drawing completion
     else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon"].includes(
+      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
         activeTool
       )
     ) {
@@ -355,6 +323,7 @@ const MainBoard = () => {
         setIsDrawing,
         setStartPos,
         setCurrentShape,
+        setActiveTool,
       });
     }
     // Handle shape resize completion
@@ -523,6 +492,7 @@ const MainBoard = () => {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onClick={handleCanvasClick}
       className="relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-rounded p-0 m-0"
     >
       {/* Checkerboard background */}
@@ -549,7 +519,7 @@ const MainBoard = () => {
         .map((shape) => renderShape(shape))}
 
       {/* Current shape being drawn */}
-      {currentShape && renderShape(currentShape)}
+      {currentShape && isShape(currentShape) && renderShape(currentShape)}
 
       {/* Resize handles for selected shape */}
       {selectedShapeId &&

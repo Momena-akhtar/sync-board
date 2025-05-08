@@ -1,38 +1,88 @@
-export type WhiteboardObject = 
-  | { id: string; type: 'frame'; x: number; y: number; width: number; height: number }
-  | { id: string; type: 'text'; x: number; y: number; width: number; height: number; content: string; isEditing: boolean }
-  | { id: string; type: 'sticky-note'; x: number; y: number; content: string; }
-  | 
-  { 
-    id: string; 
-    type: 'image'; 
-    x: number; 
-    y: number; 
-    src: string; 
-    width: number; 
-    height: number; 
-    alt?: string;
-    isSelected?: boolean;
-  }
-  |
-  { 
-    id: string; 
-    type: 'pen-stroke'; 
-    points: Array<{x: number; y: number}>; 
-    color: string; 
-    strokeWidth: number; 
-  }
-  | {
-    id: string;
-    type: 'rectangle' | 'circle' | 'triangle' | 'diamond' | 'hexagon' | 'arrow';
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    fill: string;
-    stroke: string;
-    strokeWidth: number;
-    isSelected?: boolean;
-    points?: Array<{x: number; y: number}>;
-    radius?: number;
-  };
+// Base type for all whiteboard objects
+interface BaseWhiteboardObject {
+  id: string;
+  isSelected?: boolean;
+}
+
+// Shape-specific types
+export interface ShapeBase extends BaseWhiteboardObject {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+}
+
+export interface RectangleShape extends ShapeBase {
+  type: 'rectangle';
+}
+
+export interface CircleShape extends ShapeBase {
+  type: 'circle';
+}
+
+export interface PolygonShape extends ShapeBase {
+  type: 'triangle' | 'diamond' | 'hexagon' | 'arrow';
+  points: Array<{ x: number; y: number }>;
+}
+
+// Other whiteboard object types
+export interface PenStroke extends BaseWhiteboardObject {
+  type: 'pen-stroke';
+  points: Array<{ x: number; y: number }>;
+  color: string;
+  strokeWidth: number;
+}
+
+export interface TextObject extends BaseWhiteboardObject {
+  type: 'text';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string;
+  isEditing: boolean;
+}
+
+export interface Frame extends BaseWhiteboardObject {
+  type: 'frame';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface ImageObject extends BaseWhiteboardObject {
+  type: 'image';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
+  alt?: string;
+}
+
+// Union type for all possible whiteboard objects
+export type WhiteboardObject =
+  | RectangleShape
+  | CircleShape
+  | PolygonShape
+  | PenStroke
+  | TextObject
+  | Frame
+  | ImageObject;
+
+// Type guard functions
+export const isShape = (obj: WhiteboardObject): obj is RectangleShape | CircleShape | PolygonShape => {
+  return ['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(obj.type);
+};
+
+export const isPolygonShape = (obj: WhiteboardObject): obj is PolygonShape => {
+  return ['triangle', 'diamond', 'hexagon', 'arrow'].includes(obj.type);
+};
+
+export const hasShapeDimensions = (obj: WhiteboardObject): obj is WhiteboardObject & { width: number; height: number } => {
+  return 'width' in obj && 'height' in obj;
+};

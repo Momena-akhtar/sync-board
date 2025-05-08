@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import BottomPanel from "./BottomPanel";
-import { WhiteboardObject, isShape } from "../Types/WhiteboardTypes";
+import { WhiteboardObject, isShape, ImageObject } from "../Types/WhiteboardTypes";
 import { TextToolHandler } from "../Handlers/Tools/TextToolHandler";
 import { FrameToolHandler } from "../Handlers/Tools/FrameToolHandler";
 import { PenToolHandler } from "../Handlers/Tools/PenToolHandler";
@@ -228,15 +228,23 @@ const MainBoard = () => {
       });
       // Switch to move tool after initiating image upload
       setActiveTool("move");
+    } else if (activeTool === "move") {
+      // Handle image dragging start
+      const imageElement = clickedElement.closest('[data-type="image-object"]');
+      if (imageElement) {
+        const imageId = imageElement.getAttribute('data-id');
+        if (imageId) {
+          ImageToolHandler.startDragging(imageId, e, {
+            objects,
+            setObjects,
+            setSelectedShapeId,
+          });
+        }
+      }
     } else if (
-      [
-        "rectangle",
-        "circle",
-        "triangle",
-        "diamond",
-        "hexagon",
-        "arrow",
-      ].includes(activeTool)
+      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
+        activeTool
+      )
     ) {
       ShapesToolHandler.onMouseDown(e, activeTool, {
         objects,
@@ -269,15 +277,20 @@ const MainBoard = () => {
         objects,
         setObjects,
       });
+    } else if (activeTool === "move") {
+      // Handle image dragging
+      const draggingImage = objects.find(obj => obj.type === 'image' && obj.isDragging);
+      if (draggingImage) {
+        ImageToolHandler.handleDrag(draggingImage.id, e, {
+          objects,
+          setObjects,
+          setSelectedShapeId,
+        });
+      }
     } else if (
-      [
-        "rectangle",
-        "circle",
-        "triangle",
-        "diamond",
-        "hexagon",
-        "arrow",
-      ].includes(activeTool)
+      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
+        activeTool
+      )
     ) {
       ShapesToolHandler.onMouseMove(e, activeTool, {
         isDrawing,
@@ -315,6 +328,16 @@ const MainBoard = () => {
       EraserToolHandler.onMouseUp(e, {
         setIsErasing,
       });
+    } else if (activeTool === "move") {
+      // Handle image drag end
+      const draggingImage = objects.find(obj => obj.type === 'image' && obj.isDragging);
+      if (draggingImage) {
+        ImageToolHandler.stopDragging(draggingImage.id, {
+          objects,
+          setObjects,
+          setSelectedShapeId,
+        });
+      }
     }
     // Handle shape drawing completion
     else if (
@@ -550,32 +573,36 @@ const MainBoard = () => {
         })()}
       {/* Render images */}
       {objects
-        .filter((obj) => obj.type === "image")
-        .map((imageObj) => (
+        .filter((obj): obj is ImageObject => obj.type === "image")
+        .map(imageObj => (
           <div
             key={imageObj.id}
-            className="absolute"
+            data-type="image-object"
+            data-id={imageObj.id}
+            className={`absolute ${imageObj.isSelected && !imageObj.isDragging ? 'ring-2 ring-blue-500' : ''}`}
             style={{
               left: `${imageObj.x}px`,
               top: `${imageObj.y}px`,
+              width: `${imageObj.width}px`,
+              height: `${imageObj.height}px`,
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: imageObj.isSelected ? 10 : 1,
-              cursor: activeTool === "move" ? "pointer" : "default",
+              transform: imageObj.isDragging ? 'none' : undefined,
             }}
             onClick={(e) => handleImageClick(imageObj.id, e)}
           >
             <img
               src={imageObj.src}
               alt={imageObj.alt || "Whiteboard image"}
+              className="w-full h-full object-contain select-none"
+              draggable={false}
               style={{
-                width: `${imageObj.width}px`,
-                height: `${imageObj.height}px`,
-                objectFit: "contain",
-                border: imageObj.isSelected ? "2px solid #3b82f6" : "none",
+                pointerEvents: activeTool === "move" ? "auto" : "none",
               }}
             />
 
-            {/* Resize handles for selected images */}
-            {imageObj.isSelected && activeTool === "move" && (
+            {/* Resize handles for selected images - hide during drag */}
+            {imageObj.isSelected && !imageObj.isDragging && activeTool === "move" && (
               <ShapeResizeHandles
                 id={imageObj.id}
                 x={imageObj.x}

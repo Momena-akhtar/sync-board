@@ -62,6 +62,8 @@ export interface ImageObject extends BaseWhiteboardObject {
   height: number;
   src: string;
   alt?: string;
+  isDragging?: boolean;
+  dragOffset?: { x: number; y: number };
 }
 
 // Union type for all possible whiteboard objects

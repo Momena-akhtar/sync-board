@@ -1,5 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import { WhiteboardObject } from '../../Types/WhiteboardTypes';
+import { WhiteboardObject, ImageObject } from '../../Types/WhiteboardTypes';
+
+// Type guard for ImageObject
+const isImageObject = (obj: WhiteboardObject): obj is ImageObject => {
+  return obj.type === 'image';
+};
 
 interface ImageToolOptions {
   objects: WhiteboardObject[];
@@ -27,6 +32,12 @@ export const ImageToolHandler = {
     const rect = canvas.getBoundingClientRect();
     const scrollLeft = canvas.scrollLeft;
     const scrollTop = canvas.scrollTop;
+    
+    // Calculate center of viewport
+    const viewportWidth = canvas.clientWidth;
+    const viewportHeight = canvas.clientHeight;
+    const centerX = viewportWidth / 2 + scrollLeft;
+    const centerY = viewportHeight / 2 + scrollTop;
     
     // Handle file selection
     fileInput.onchange = (event) => {
@@ -68,9 +79,9 @@ export const ImageToolHandler = {
               }
             }
             
-            // Calculate position relative to canvas, accounting for scroll
-            const imageX = e.clientX - rect.left + scrollLeft;
-            const imageY = e.clientY - rect.top + scrollTop;
+            // Position image at the center of the viewport
+            const imageX = centerX - (width / 2);
+            const imageY = centerY - (height / 2);
             
             // Create new image object with proper dimensions
             const newImage: WhiteboardObject = {
@@ -82,7 +93,9 @@ export const ImageToolHandler = {
               width: width,
               height: height,
               alt: file.name || 'Uploaded image',
-              isSelected: true
+              isSelected: true,
+              isDragging: false,
+              dragOffset: { x: 0, y: 0 }
             };
             
             options.setObjects(prev => [...prev, newImage]);
@@ -155,7 +168,7 @@ maintainAspectRatio: (
     options: ImageToolOptions
   ) => {
     const updatedObjects = options.objects.map(obj => {
-      if (obj.id === id && obj.type === 'image') {
+      if (obj.id === id && isImageObject(obj)) {
         return { ...obj, isSelected: true };
       } else if ('isSelected' in obj && obj.isSelected) {
         return { ...obj, isSelected: false };
@@ -220,6 +233,83 @@ maintainAspectRatio: (
     if (options.setSelectedShapeId) {
       options.setSelectedShapeId(null);
     }
+  },
+
+  /**
+   * Start dragging an image
+   */
+  startDragging: (
+    id: string,
+    e: React.MouseEvent,
+    options: ImageToolOptions
+  ) => {
+    const image = options.objects.find(obj => obj.id === id);
+    if (!image || !isImageObject(image)) return;
+
+    const updatedObjects = options.objects.map(obj => {
+      if (obj.id === id && isImageObject(obj)) {
+        return {
+          ...obj,
+          isDragging: true,
+          dragOffset: {
+            x: e.clientX - obj.x,
+            y: e.clientY - obj.y
+          }
+        };
+      }
+      return obj;
+    });
+
+    options.setObjects(updatedObjects);
+  },
+
+  /**
+   * Handle dragging of image
+   */
+  handleDrag: (
+    id: string,
+    e: React.MouseEvent,
+    options: ImageToolOptions
+  ) => {
+    const image = options.objects.find(obj => obj.id === id);
+    if (!image || !isImageObject(image) || !image.isDragging) return;
+
+    const canvas = e.currentTarget as HTMLElement;
+    const scrollLeft = canvas.scrollLeft;
+    const scrollTop = canvas.scrollTop;
+
+    const updatedObjects = options.objects.map(obj => {
+      if (obj.id === id && isImageObject(obj) && obj.dragOffset) {
+        return {
+          ...obj,
+          x: e.clientX - obj.dragOffset.x + scrollLeft,
+          y: e.clientY - obj.dragOffset.y + scrollTop
+        };
+      }
+      return obj;
+    });
+
+    options.setObjects(updatedObjects);
+  },
+
+  /**
+   * Stop dragging an image
+   */
+  stopDragging: (
+    id: string,
+    options: ImageToolOptions
+  ) => {
+    const updatedObjects = options.objects.map(obj => {
+      if (obj.id === id && isImageObject(obj)) {
+        return {
+          ...obj,
+          isDragging: false
+        };
+      }
+      return obj;
+    });
+
+    options.setObjects(updatedObjects);
   }
 };
 

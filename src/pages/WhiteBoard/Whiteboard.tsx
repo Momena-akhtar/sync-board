@@ -92,6 +92,7 @@ const WhiteBoard = () => {
                 title={title}
                 whiteboardElements={pages}
                 onBackgroundColorChange={updateBackgroundColor}
+                currentPageIndex={currentPageIndex}
               />
             </div>
           )}

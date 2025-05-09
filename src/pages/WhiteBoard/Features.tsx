@@ -9,25 +9,47 @@ interface FeaturesProps {
     title: string;
     whiteboardElements: Page[];
     onBackgroundColorChange: (color: string) => void;
+    currentPageIndex: number;
 }
 
-const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgroundColorChange }) => {
+const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgroundColorChange, currentPageIndex }) => {
     const [scale, setScale] = useState<number>(1);
     const [format, setFormat] = useState<'PNG' | 'JPG' | 'PDF'>('PNG');
 
     const handleExport = () => {
-        // Get the main whiteboard container element
-        const boardElement = document.querySelector('.relative.w-full.h-full.overflow-auto') as HTMLElement;
+        // Get the main board container element - specifically the content area
+        const boardElement = document.querySelector('.flex-1.p-4.h-full.overflow-auto') as HTMLElement;
         if (!boardElement) {
             console.error('Could not find whiteboard element');
             return;
         }
+
+        // Store original scroll position
+        const originalScrollLeft = boardElement.scrollLeft;
+        const originalScrollTop = boardElement.scrollTop;
+
+        // Hide bottom panel temporarily
+        const bottomPanel = document.querySelector('.fixed.bottom-8') as HTMLElement;
+        if (bottomPanel) {
+            bottomPanel.style.visibility = 'hidden';
+        }
+
+        // Reset scroll position temporarily
+        boardElement.scrollLeft = 0;
+        boardElement.scrollTop = 0;
 
         ExportHandler.exportBoard(boardElement, {
             format,
             filename: title || 'whiteboard',
             scale,
             pages: whiteboardElements
+        }).finally(() => {
+            // Restore original scroll position and bottom panel
+            boardElement.scrollLeft = originalScrollLeft;
+            boardElement.scrollTop = originalScrollTop;
+            if (bottomPanel) {
+                bottomPanel.style.visibility = 'visible';
+            }
         });
     };
     const handleScaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -71,33 +93,23 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgr
             </div>
 
             {/* Right Side - Editable Zoom Level */}
-            <input
-                type="text"
-                defaultValue="100%"
-                className="bg-transparent text-white text-right w-12 text-sm border border-[#383838] rounded-full px-1 focus:outline-none focus:border-[#405CE3]" />
+            
             </div>
             <hr className="border-none h-[2px] w-full mt-2 mb-2 bg-[#383838]" />
             {/* Label Page and Color Palette */}
             <div className="px-2 mt-4">
                 <label className="text-white text-sm mb-3">Page Color</label>
-                <div className="flex items-center mt-4 ">
+                <div className="flex items-center  mt-4 ">
                     <input
                         type="text"
-                        defaultValue="#1E1E1E"
+                        value={whiteboardElements[currentPageIndex]?.backgroundColor || "#1E1E1E"}
                         className="bg-transparent text-white text-xs border border-[#383838] rounded-lg p-1 focus:outline-none focus:border-[#405CE3] w-30"
                         id="colorHexValue"
                         readOnly
                     />
-                    <input
-                        type="text"
-                        defaultValue="100%"
-                        className="bg-transparent text-white text-xs border border-[#383838] rounded-lg p-1 focus:outline-none focus:border-[#405CE3] w-16 ml-1"
-                        id="transparencyValue"
-                        readOnly
-                    />
                     <div
                         className="w-6 h-6 ml-1 cursor-pointer rounded-lg border border-[#383838] color-preview"
-                        style={{ backgroundColor: '#1E1E1E' }}
+                        style={{ backgroundColor: whiteboardElements[currentPageIndex]?.backgroundColor || "#1E1E1E" }}
                         onClick={() => document.getElementById('colorPicker')?.click()}
                     ></div>
                     
@@ -105,24 +117,11 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgr
                         type="color"
                         id="colorPicker"
                         className="hidden"
-                        defaultValue="#1E1E1E"
+                        value={whiteboardElements[currentPageIndex]?.backgroundColor || "#1E1E1E"}
                         onChange={handleColorChange}
                     />
                 </div>
-                <hr className="border-none h-[2px] w-full mt-6 mb-4 bg-[#383838]" />
-            </div>
-            <div className="flex items-center justify-between mt-4 px-2">
-                <label className="text-white text-sm">Local styles</label>
-                <svg 
-                    className="w-4 h-4 text-white cursor-pointer hover:text-gray-400 transition-colors duration-200 ease-in-out" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-            </div>
+            </div>       
             <hr className="border-none h-[2px] w-full mt-4 mb-4 bg-[#383838]" />
             <div className="flex items-center justify-between mt-4 px-2">
                 <label className="text-white text-sm">Export</label>

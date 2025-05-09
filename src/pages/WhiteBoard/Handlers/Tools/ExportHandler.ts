@@ -2,7 +2,7 @@
 // Only the necessary changes to resolve the blank export issue
 
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import { WhiteboardObject, isShape, PenStroke, Page } from '../../Types/WhiteboardTypes';
 
 interface ExportOptions {
@@ -21,14 +21,16 @@ export class ExportHandler {
       // Configure html2canvas options
       const canvasOptions = {
         scale: options.scale,
-        backgroundColor: '#ffffff',
-        logging: true,
+        logging: false,
         useCORS: true,
         allowTaint: true,
-        foreignObjectRendering: true,
-        ignoreElements: (element: Element) => {
-          return element.classList.contains('bottom-panel');
-        }
+        backgroundColor: null,
+        windowWidth: boardElement.scrollWidth,
+        windowHeight: boardElement.scrollHeight,
+        width: boardElement.scrollWidth,
+        height: boardElement.scrollHeight,
+        scrollX: 0,
+        scrollY: 0
       };
 
       if (options.format === 'PDF' && options.pages.length > 1) {
@@ -41,21 +43,45 @@ export class ExportHandler {
 
         for (let i = 0; i < options.pages.length; i++) {
           const page = options.pages[i];
+          
           // Set the background color for the current page
           boardElement.style.backgroundColor = page.backgroundColor;
           
           // Convert the board to canvas
-          const canvas = await html2canvas(boardElement, canvasOptions);
+          const canvas = await html2canvas(boardElement, {
+            ...canvasOptions,
+            backgroundColor: page.backgroundColor
+          });
           
           // Add page to PDF
           if (i > 0) pdf.addPage();
-          pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, canvas.width, canvas.height);
+          
+          // Calculate dimensions to fit the page while maintaining aspect ratio
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+          const width = canvas.width * ratio;
+          const height = canvas.height * ratio;
+          const x = (pageWidth - width) / 2;
+          const y = (pageHeight - height) / 2;
+          
+          pdf.addImage(
+            canvas.toDataURL('image/jpeg', 1.0),
+            'JPEG',
+            x,
+            y,
+            width,
+            height
+          );
         }
 
         pdf.save(`${options.filename}.pdf`);
       } else {
         // For single page or image formats
-        const canvas = await html2canvas(boardElement, canvasOptions);
+        const canvas = await html2canvas(boardElement, {
+          ...canvasOptions,
+          backgroundColor: options.pages[0].backgroundColor
+        });
 
         switch (options.format) {
           case 'PNG':
@@ -83,14 +109,28 @@ export class ExportHandler {
   }
 
   private static downloadPDF(canvas: HTMLCanvasElement, filename: string): void {
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
     const pdf = new jsPDF({
-      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      orientation: 'landscape',
       unit: 'px',
-      format: [canvas.width, canvas.height]
+      format: 'a4'
     });
-    
-    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+    const width = canvas.width * ratio;
+    const height = canvas.height * ratio;
+    const x = (pageWidth - width) / 2;
+    const y = (pageHeight - height) / 2;
+
+    pdf.addImage(
+      canvas.toDataURL('image/jpeg', 1.0),
+      'JPEG',
+      x,
+      y,
+      width,
+      height
+    );
     pdf.save(`${filename}.pdf`);
   }
 }

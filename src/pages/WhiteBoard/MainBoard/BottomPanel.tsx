@@ -74,7 +74,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             onClick={handleClickOutside}
         >
             {/* Color Picker */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-21">
                 <input
                     type="color"
                     value={currentColor}

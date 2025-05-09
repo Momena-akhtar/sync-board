@@ -9,26 +9,31 @@ import { EraserToolHandler } from "../Handlers/Tools/EraserToolHandler";
 import { ImageToolHandler } from "../Handlers/Tools/ImageToolHandler";
 import ShapeResizeHandles from "../Handlers/Tools/ShapeResizeHandler";
 
-const MainBoard = () => {
-  const [objects, setObjects] = useState<WhiteboardObject[]>([]);
+interface MainBoardProps {
+  objects: WhiteboardObject[];
+  setObjects: (objects: WhiteboardObject[]) => void;
+}
+
+const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
+  // Wrap setObjects to make it compatible with React state setters
+  const wrappedSetObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>> = (value) => {
+    if (typeof value === 'function') {
+      setObjects(value(objects));
+    } else {
+      setObjects(value);
+    }
+  };
+
   const [activeTool, setActiveTool] = useState<string>("move");
   const [isDrawing, setIsDrawing] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentColor, setCurrentColor] = useState<string>("#ffffff");
-  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
-    null
-  );
-  const [currentFrame, setCurrentFrame] = useState<WhiteboardObject | null>(
-    null
-  );
-  const [currentStroke, setCurrentStroke] = useState<WhiteboardObject | null>(
-    null
-  );
-  const [currentShape, setCurrentShape] = useState<WhiteboardObject | null>(
-    null
-  );
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [currentFrame, setCurrentFrame] = useState<WhiteboardObject | null>(null);
+  const [currentStroke, setCurrentStroke] = useState<WhiteboardObject | null>(null);
+  const [currentShape, setCurrentShape] = useState<WhiteboardObject | null>(null);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [resizeData, setResizeData] = useState<{
     id: string;
@@ -44,6 +49,17 @@ const MainBoard = () => {
   const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>(
     {}
   );
+
+  // Clear selection when switching pages
+  useEffect(() => {
+    setSelectedShapeId(null);
+    setCurrentShape(null);
+    setCurrentFrame(null);
+    setCurrentStroke(null);
+    setIsDrawing(false);
+    setIsErasing(false);
+    setIsResizing(false);
+  }, [objects]);
 
   // Focus the text input when a new text object is created
   useEffect(() => {
@@ -100,14 +116,14 @@ const MainBoard = () => {
   const handleShapeClick = (shapeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (activeTool === "move") {
-      ShapesToolHandler.selectShape(shapeId, objects, setObjects);
+      ShapesToolHandler.selectShape(shapeId, objects, wrappedSetObjects);
       setSelectedShapeId(shapeId);
     }
   };
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (activeTool === "move" && selectedShapeId) {
-      ShapesToolHandler.deselectAllShapes(objects, setObjects);
+      ShapesToolHandler.deselectAllShapes(objects, wrappedSetObjects);
       setSelectedShapeId(null);
     }
   };
@@ -171,14 +187,14 @@ const MainBoard = () => {
         // Use ImageToolHandler for image resizing
         ImageToolHandler.resizeImage(resizeData.id, newWidth, newHeight, {
           objects,
-          setObjects,
+          setObjects: wrappedSetObjects,
           setSelectedShapeId,
         });
       } else {
         // Use ShapesToolHandler for other shapes
         ShapesToolHandler.resizeShape(resizeData.id, newWidth, newHeight, {
           objects,
-          setObjects,
+          setObjects: wrappedSetObjects,
           setSelectedShapeId,
         });
       }
@@ -202,17 +218,17 @@ const MainBoard = () => {
     if (activeTool === "frame") {
       FrameToolHandler.onMouseDown(e, {
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setIsDrawing,
         setStartPos,
         setCurrentFrame,
       });
     } else if (activeTool === "text") {
-      TextToolHandler.onMouseDown(e, { objects, setObjects });
+      TextToolHandler.onMouseDown(e, { objects, setObjects: wrappedSetObjects });
     } else if (activeTool === "pen") {
       PenToolHandler.onMouseDown(e, {
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setIsDrawing,
         setCurrentStroke,
       });
@@ -223,7 +239,7 @@ const MainBoard = () => {
     } else if (activeTool === "Image") {
       ImageToolHandler.onActivate(e, {
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setSelectedShapeId,
       });
       // Switch to move tool after initiating image upload
@@ -236,7 +252,7 @@ const MainBoard = () => {
         if (imageId) {
           ImageToolHandler.startDragging(imageId, e, {
             objects,
-            setObjects,
+            setObjects: wrappedSetObjects,
             setSelectedShapeId,
           });
         }
@@ -248,7 +264,7 @@ const MainBoard = () => {
     ) {
       ShapesToolHandler.onMouseDown(e, activeTool, {
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setIsDrawing,
         setStartPos,
         setCurrentShape,
@@ -275,7 +291,7 @@ const MainBoard = () => {
       EraserToolHandler.onMouseMove(e, {
         isErasing,
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
       });
     } else if (activeTool === "move") {
       // Handle image dragging
@@ -283,7 +299,7 @@ const MainBoard = () => {
       if (draggingImage) {
         ImageToolHandler.handleDrag(draggingImage.id, e, {
           objects,
-          setObjects,
+          setObjects: wrappedSetObjects,
           setSelectedShapeId,
         });
       }
@@ -310,7 +326,7 @@ const MainBoard = () => {
         isDrawing,
         currentFrame,
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setIsDrawing,
         setStartPos,
         setCurrentFrame,
@@ -320,7 +336,7 @@ const MainBoard = () => {
         isDrawing,
         currentStroke,
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setIsDrawing,
         setCurrentStroke,
       });
@@ -334,7 +350,7 @@ const MainBoard = () => {
       if (draggingImage) {
         ImageToolHandler.stopDragging(draggingImage.id, {
           objects,
-          setObjects,
+          setObjects: wrappedSetObjects,
           setSelectedShapeId,
         });
       }
@@ -349,7 +365,7 @@ const MainBoard = () => {
         isDrawing,
         currentShape,
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setIsDrawing,
         setStartPos,
         setCurrentShape,
@@ -370,11 +386,11 @@ const MainBoard = () => {
     id: string,
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    TextToolHandler.onChangeText(id, e.target.value, { objects, setObjects });
+    TextToolHandler.onChangeText(id, e.target.value, { objects, setObjects: wrappedSetObjects });
   };
 
   const handleTextBlur = (id: string) => {
-    TextToolHandler.onFinishEditing(id, { objects, setObjects });
+    TextToolHandler.onFinishEditing(id, { objects, setObjects: wrappedSetObjects });
     setActiveTool("move");
   };
 
@@ -382,14 +398,14 @@ const MainBoard = () => {
     // Prevent the event from bubbling up to the canvas
     e.stopPropagation();
     // Start editing the text object
-    TextToolHandler.onStartEditing(id, { objects, setObjects });
+    TextToolHandler.onStartEditing(id, { objects, setObjects: wrappedSetObjects });
   };
   const handleImageClick = (imageId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (activeTool === "move") {
       ImageToolHandler.selectImage(imageId, {
         objects,
-        setObjects,
+        setObjects: wrappedSetObjects,
         setSelectedShapeId,
       });
     }
@@ -523,16 +539,11 @@ const MainBoard = () => {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onClick={handleCanvasClick}
-      className="relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-rounded p-0 m-0"
+      className="whiteboard-content relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-rounded p-0 m-0"
     >
       {/* Checkerboard background */}
       <div
         className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(45deg, #000000 25%,rgb(27, 27, 27) 25%), linear-gradient(-45deg, #000000 25%, #808080 25%)",
-          backgroundSize: "10px 10px",
-        }}
       />
       {/* Render all shape objects */}
       {objects

@@ -1,14 +1,26 @@
 import React from "react";
+import { Page } from "./Types/WhiteboardTypes";
 
 interface SidePanelProps {
     title: string;
     setTitle: React.Dispatch<React.SetStateAction<string>>;
+    pages: Page[];
+    currentPageIndex: number;
+    setCurrentPageIndex: React.Dispatch<React.SetStateAction<number>>;
+    onAddPage: () => void;
 }
 
-const SidePanel: React.FC<SidePanelProps> = ({ title, setTitle }) => {
+const SidePanel: React.FC<SidePanelProps> = ({ 
+    title, 
+    setTitle, 
+    pages,
+    currentPageIndex,
+    setCurrentPageIndex,
+    onAddPage 
+}) => {
     return (
         <div>
-            <div className="text-sm font-semibold mb-4 flex items-center  p-2">
+            <div className="text-sm font-semibold mb-4 flex items-center p-2">
                 {/* <FaProjectDiagram className="mr-2 text-white" /> */}
                 <input 
                     type="text" 
@@ -47,41 +59,53 @@ const SidePanel: React.FC<SidePanelProps> = ({ title, setTitle }) => {
 
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-sm font-bold text-white">Pages</h3>
-                <svg 
-                    className="w-4 h-4 cursor-pointer hover:text-gray-400 transition-colors duration-200 ease-in-out" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
-                    xmlns="http://www.w3.org/2000/svg"
+                <button 
+                    onClick={onAddPage}
+                    className="text-gray-300 hover:text-white cursor-pointer transition-colors duration-200 ease-in-out"
                 >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-                </svg>
+                    <svg 
+                        className="w-4 h-4" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </button>
             </div>
+            
             <div className="flex flex-col space-y-2">
-                <div className="flex items-center text-sm justify-between p-2 bg-[#1E1E1E] rounded-lg cursor-pointer hover:transition-colors duration-200 ease-in-out">
-                    <span className="text-white text-xs">Page 1</span>
-                </div>
-                 <div className="flex items-center text-sm justify-between p-2 bg-[#1E1E1E] rounded-lg cursor-pointer hover:transition-colors duration-200 ease-in-out">
-                    <span className="text-white text-xs">Page 2</span>
-                </div>
-                <hr className="border-none h-[2px] mt-2 bg-[#383838]" />
-                </div>
-                <div>
-                    <div className="flex justify-between items-center mt-4">
-                        <h3 className="text-sm font-bold text-white">Layers</h3>
-                        <svg 
-                            className="w-4 h-4 cursor-pointer hover:text-gray-400 transition-colors duration-200 ease-in-out" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24" 
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7l9 6 9-6-9-6-9 6zm0 6l9 6 9-6-9-6-9 6z"></path>
-                        </svg>
+                {pages.map((page, index) => (
+                    <div 
+                        key={page.id}
+                        className={`flex items-center text-sm justify-between p-2 rounded-lg cursor-pointer hover:bg-[#2E2E2E] transition-colors duration-200 ease-in-out ${
+                            currentPageIndex === index ? 'bg-[#2E2E2E]' : 'bg-[#1E1E1E]'
+                        }`}
+                        onClick={() => setCurrentPageIndex(index)}
+                    >
+                        <span className="text-white text-xs">{page.name}</span>
                     </div>
+                ))}
+            </div>
+                
+            <hr className="border-none h-[2px] mt-2 bg-[#383838]" />
+            <div>
+                <div className="flex justify-between items-center mt-4">
+                    <h3 className="text-sm font-bold text-white">Layers</h3>
+                    <svg 
+                        className="w-4 h-4 cursor-pointer hover:text-gray-400 transition-colors duration-200 ease-in-out" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7l9 6 9-6-9-6-9 6zm0 6l9 6 9-6-9-6-9 6z"></path>
+                    </svg>
                 </div>
+            </div>
         </div>
     );
-}
+};
 
 export default SidePanel;

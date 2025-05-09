@@ -9,7 +9,7 @@ function isDrawableShape(obj: WhiteboardObject): obj is Shape {
 
 interface ShapeToolState {
     objects: WhiteboardObject[];
-    setObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>>;
+    setObjects: (objects: WhiteboardObject[]) => void;
     setIsDrawing?: React.Dispatch<React.SetStateAction<boolean>>;
     setStartPos?: React.Dispatch<React.SetStateAction<{ x: number, y: number } | null>>;
     setCurrentShape?: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
@@ -27,7 +27,7 @@ interface ShapeToolUpState {
     isDrawing: boolean;
     currentShape: WhiteboardObject | null;
     objects: WhiteboardObject[];
-    setObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>>;
+    setObjects: (objects: WhiteboardObject[]) => void;
     setIsDrawing: React.Dispatch<React.SetStateAction<boolean>>;
     setStartPos: React.Dispatch<React.SetStateAction<{ x: number, y: number } | null>>;
     setCurrentShape: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
@@ -36,7 +36,7 @@ interface ShapeToolUpState {
 
 interface ShapeSelectState {
     objects: WhiteboardObject[];
-    setObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>>;
+    setObjects: (objects: WhiteboardObject[]) => void;
     setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 

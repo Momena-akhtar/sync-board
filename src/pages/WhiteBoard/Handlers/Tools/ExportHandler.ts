@@ -3,52 +3,71 @@
 
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { WhiteboardObject, isShape, PenStroke } from '../../Types/WhiteboardTypes';
+import { WhiteboardObject, isShape, PenStroke, Page } from '../../Types/WhiteboardTypes';
 
 interface ExportOptions {
   format: 'PNG' | 'JPG' | 'PDF';
   filename: string;
   scale: number;
+  pages: Page[];
 }
 
 export class ExportHandler {
   static async exportBoard(
     boardElement: HTMLElement, 
-    options: ExportOptions,
-    elements: WhiteboardObject[]
+    options: ExportOptions
   ): Promise<void> {
     try {
-      // Instead of creating a separate container, directly capture the boardElement
-      // This ensures we capture what's actually visible to the user
-      
       // Configure html2canvas options
       const canvasOptions = {
         scale: options.scale,
         backgroundColor: '#ffffff',
-        logging: true, // Enable logging for debugging
-        useCORS: true, // Enable CORS for images
+        logging: true,
+        useCORS: true,
         allowTaint: true,
         foreignObjectRendering: true,
         ignoreElements: (element: Element) => {
-          // Ignore the bottom panel in the export
           return element.classList.contains('bottom-panel');
         }
       };
 
-      // Convert the actual board to canvas
-      const canvas = await html2canvas(boardElement, canvasOptions);
+      if (options.format === 'PDF' && options.pages.length > 1) {
+        // For PDF with multiple pages
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: 'a4'
+        });
 
-      // Handle different export formats
-      switch (options.format) {
-        case 'PNG':
-          this.downloadImage(canvas, `${options.filename}.png`, 'image/png');
-          break;
-        case 'JPG':
-          this.downloadImage(canvas, `${options.filename}.jpg`, 'image/jpeg');
-          break;
-        case 'PDF':
-          this.downloadPDF(canvas, options.filename);
-          break;
+        for (let i = 0; i < options.pages.length; i++) {
+          const page = options.pages[i];
+          // Set the background color for the current page
+          boardElement.style.backgroundColor = page.backgroundColor;
+          
+          // Convert the board to canvas
+          const canvas = await html2canvas(boardElement, canvasOptions);
+          
+          // Add page to PDF
+          if (i > 0) pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, canvas.width, canvas.height);
+        }
+
+        pdf.save(`${options.filename}.pdf`);
+      } else {
+        // For single page or image formats
+        const canvas = await html2canvas(boardElement, canvasOptions);
+
+        switch (options.format) {
+          case 'PNG':
+            this.downloadImage(canvas, `${options.filename}.png`, 'image/png');
+            break;
+          case 'JPG':
+            this.downloadImage(canvas, `${options.filename}.jpg`, 'image/jpeg');
+            break;
+          case 'PDF':
+            this.downloadPDF(canvas, options.filename);
+            break;
+        }
       }
     } catch (error) {
       console.error('Export failed:', error);

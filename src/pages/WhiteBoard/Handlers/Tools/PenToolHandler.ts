@@ -4,7 +4,7 @@ import { WhiteboardObject, PenStroke } from '../../Types/WhiteboardTypes';
 
 interface PenToolState {
   objects: WhiteboardObject[];
-  setObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>>;
+  setObjects: (objects: WhiteboardObject[]) => void;
   setIsDrawing?: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentStroke?: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
   isDrawing?: boolean;

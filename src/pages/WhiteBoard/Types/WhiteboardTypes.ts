@@ -88,3 +88,24 @@ export const isPolygonShape = (obj: WhiteboardObject): obj is PolygonShape => {
 export const hasShapeDimensions = (obj: WhiteboardObject): obj is WhiteboardObject & { width: number; height: number } => {
   return 'width' in obj && 'height' in obj;
 };
+
+export type ObjectsSetter = ((objects: WhiteboardObject[]) => void) | React.Dispatch<React.SetStateAction<WhiteboardObject[]>>;
+
+export interface ToolHandlerState {
+  objects: WhiteboardObject[];
+  setObjects: ObjectsSetter;
+  setIsDrawing?: React.Dispatch<React.SetStateAction<boolean>>;
+  setStartPos?: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
+  setCurrentShape?: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
+  setCurrentStroke?: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
+  setCurrentFrame?: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
+  setSelectedShapeId?: React.Dispatch<React.SetStateAction<string | null>>;
+  currentColor?: string;
+}
+
+export interface Page {
+  id: string;
+  name: string;
+  objects: WhiteboardObject[];
+  backgroundColor: string;
+}

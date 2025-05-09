@@ -3,13 +3,15 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import { FiMoreHorizontal, FiMinus } from "react-icons/fi";
 import React, { useState } from 'react';
 import { ExportHandler } from './Handlers/Tools/ExportHandler';
-import { WhiteboardObject } from './Types/WhiteboardTypes';
+import { WhiteboardObject, Page } from './Types/WhiteboardTypes';
 
 interface FeaturesProps {
     title: string;
-    whiteboardElements?: WhiteboardObject[];
+    whiteboardElements: Page[];
+    onBackgroundColorChange: (color: string) => void;
 }
-const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
+
+const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgroundColorChange }) => {
     const [scale, setScale] = useState<number>(1);
     const [format, setFormat] = useState<'PNG' | 'JPG' | 'PDF'>('PNG');
 
@@ -21,15 +23,12 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
             return;
         }
 
-        // Get the whiteboard elements from the MainBoard component's state
-        // You'll need to pass this as a prop from MainBoard to Features
-        const elements = whiteboardElements || [];
-    
         ExportHandler.exportBoard(boardElement, {
             format,
             filename: title || 'whiteboard',
-            scale
-        }, elements);
+            scale,
+            pages: whiteboardElements
+        });
     };
     const handleScaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setScale(parseFloat(e.target.value));
@@ -37,6 +36,15 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
 
     const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setFormat(e.target.value as 'PNG' | 'JPG' | 'PDF');
+    };
+
+    const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newColor = e.target.value;
+        onBackgroundColorChange(newColor);
+        const colorHexValue = document.getElementById('colorHexValue') as HTMLInputElement;
+        const colorBox = document.querySelector('.color-preview') as HTMLDivElement;
+        if (colorHexValue) colorHexValue.value = newColor;
+        if (colorBox) colorBox.style.backgroundColor = newColor;
     };
 
     return (
@@ -75,19 +83,21 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
                 <div className="flex items-center mt-4 ">
                     <input
                         type="text"
-                        defaultValue="#383838"
+                        defaultValue="#1E1E1E"
                         className="bg-transparent text-white text-xs border border-[#383838] rounded-lg p-1 focus:outline-none focus:border-[#405CE3] w-30"
                         id="colorHexValue"
+                        readOnly
                     />
                     <input
                         type="text"
                         defaultValue="100%"
                         className="bg-transparent text-white text-xs border border-[#383838] rounded-lg p-1 focus:outline-none focus:border-[#405CE3] w-16 ml-1"
                         id="transparencyValue"
+                        readOnly
                     />
                     <div
-                        className="w-6 h-6 ml-1 cursor-pointer rounded-lg border border-[#383838]"
-                        style={{ backgroundColor: '#383838' }}
+                        className="w-6 h-6 ml-1 cursor-pointer rounded-lg border border-[#383838] color-preview"
+                        style={{ backgroundColor: '#1E1E1E' }}
                         onClick={() => document.getElementById('colorPicker')?.click()}
                     ></div>
                     
@@ -95,12 +105,8 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
                         type="color"
                         id="colorPicker"
                         className="hidden"
-                        onChange={(e) => {
-                            const colorHexValue = document.getElementById('colorHexValue') as HTMLInputElement;
-                            const colorBox = e.target.previousElementSibling as HTMLDivElement;
-                            colorHexValue.value = e.target.value;
-                            colorBox.style.backgroundColor = e.target.value;
-                        }}
+                        defaultValue="#1E1E1E"
+                        onChange={handleColorChange}
                     />
                 </div>
                 <hr className="border-none h-[2px] w-full mt-6 mb-4 bg-[#383838]" />
@@ -172,6 +178,6 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements }) => {
             <hr className="border-none h-[2px] w-full mt-6 mb-4 bg-[#383838]" />
         </div>
     );
-    }
-export default
-Features;
+}
+
+export default Features;

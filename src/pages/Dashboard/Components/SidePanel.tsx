@@ -1,13 +1,24 @@
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaSignOutAlt } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { authService } from "../../../services/authService";
+import UserProfileModal from "./UserProfileModal";
 
 const SidePanel = () => {
   const { user } = useAuth(); // Access loading state
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const toggleTheme = () => {
     if (document.body.classList.contains("dark")) {
@@ -57,7 +68,11 @@ const SidePanel = () => {
       {/* User Section */}
       <div className="flex items-center gap-2 w-full">
         {getPhoto()}
-        <span className="text-white">{getDisplayName()}</span>
+        <span className="text-white flex-1">{getDisplayName()}</span>
+        <FaSignOutAlt 
+          className="text-white text-lg cursor-pointer hover:text-gray-300 transition-colors" 
+          onClick={handleLogout}
+        />
       </div>
   
       {/* Toggle Theme Section */}

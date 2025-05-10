@@ -1,8 +1,8 @@
 import { signInAsGuest, signInWithGoogle, signInWithGitHub } from "../../../../backend/auth/firebase";
 import { useNavigate } from "react-router-dom";
-import { useAuth
+import { useAuth } from "../../../../contexts/AuthContext";
+import { authService } from "../../../../services/authService";
 
- } from "../../../../contexts/AuthContext";
 interface AuthPageProps {
     closeModal: () => void;
   }
@@ -11,36 +11,34 @@ interface AuthPageProps {
     const { setUser } = useAuth();
     const navigate = useNavigate();
 
-    
+    const handleBackendAuth = async (user: any) => {
+      try {
+        const token = await user.getIdToken();
+        await authService.loginWithFirebase(token);
+        setUser(user);
+        closeModal();
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Backend authentication failed:", error);
+      }
+    };
+
     const handleGoogleLogin = async () => {
       const user = await signInWithGoogle();
       if (user) {
-        console.log("Google Login Success:", user);
-        closeModal(); // Close modal after successful login
-        navigate("/dashboard");
+        await handleBackendAuth(user);
       }
     };
     const handleGitHubLogin = async () => {
       const user = await signInWithGitHub();
       if (user) {
-        console.log("GitHub Login Success:", user);
-        closeModal();
-        navigate("/dashboard"); // Use navigate instead of window.location.href
-      }
-      else{
-        console.log("an error occured")
+        await handleBackendAuth(user);
       }
     };
     const handleGuestLogin = async () => {
       const user = await signInAsGuest();
       if (user) {
-        console.log("Guest Login Success:", user);
-        setUser(user); // Set the user in context 
-        closeModal();
-        navigate("/dashboard"); // Use navigate instead of window.location.href
-      }
-      else{
-        console.log("an error occured")
+        await handleBackendAuth(user);
       }
     };
     return (

@@ -21,12 +21,13 @@ const UserProfileModal = ({ isOpen, onClose, userPhoto }: UserProfileModalProps)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const displayedEmail = profile?.email?.endsWith("@noemail.com") ? "No email" : profile?.email;
-
+  
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const data = await authService.getUserProfile();
+        console.log("received data",  data);  
         setProfile(data);
         setError(null);
       } catch (err) {

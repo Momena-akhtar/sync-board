@@ -6,12 +6,56 @@ import { useState } from "react";
 
 interface AuthPageProps {
     closeModal: () => void;
-  }
-  
-  const AuthPage: React.FC<AuthPageProps> = ({ closeModal }) => {
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ closeModal }) => {
     const { setUser } = useAuth();
     const navigate = useNavigate();
     const [isLogin, setIsLogin] = useState(true);
+    const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: ''
+    });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleRegister = async () => {
+        try {
+            await authService.register(formData);
+            setMessage({ text: 'Registration successful! Please login.', type: 'success' });
+            setIsLogin(true);
+            setFormData(prev => ({ ...prev, username: '' }));
+        } catch (error) {
+            setMessage({ text: 'Registration failed. Please try again.', type: 'error' });
+            console.error('Registration error:', error);
+        }
+    };
+
+    const handleLogin = async () => {
+        try {
+            const data = await authService.login({
+                email: formData.email,
+                password: formData.password
+            });
+            setMessage({ text: 'Login successful!', type: 'success' });
+            setUser(data.user);
+            setTimeout(() => {
+                closeModal();
+                navigate("/dashboard");
+            }, 1000);
+        } catch (error) {
+            setMessage({ text: 'Login failed. Please check your credentials.', type: 'error' });
+            console.error('Login error:', error);
+        }
+    };
 
     const handleBackendAuth = async (user: any) => {
       try {
@@ -54,42 +98,64 @@ interface AuthPageProps {
             ✖
           </button>
           <h2 className="text-2xl font-bold mb-4 text-center">Sign in to Sync</h2>
+          {message && (
+            <div className={`text-center mb-4 p-2 rounded ${
+              message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
+              {message.text}
+            </div>
+          )}
           <div className="flex flex-col items-center w-full">
             {isLogin ? (
               <>
                 <input 
                   className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
                   type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="Email" 
                 />
                 <input 
                   className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
                   type="password" 
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Password" 
                 />
               </>
             ) : (
               <>
                 <input 
-                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm "
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
                   type="text" 
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
                   placeholder="Username" 
                 />
                 <input 
                   className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
                   type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="Email" 
                 />
                 <input 
-                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm "
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
                   type="password" 
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Password" 
                 />
               </>
             )}
             <div className="flex justify-center m-2 w-full">
               <button 
-                onClick={handleGuestLogin}
+                onClick={isLogin ? handleLogin : handleRegister}
                 className="flex items-center justify-center w-[50%] text-center cursor-pointer p-2.5 rounded-full transition duration-300 hover:scale-105 bg-yellow-400 shadow-lg text-md">
                 <span className="font-medium">{isLogin ? "Login" : "Register"}</span>
               </button>

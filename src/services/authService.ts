@@ -1,6 +1,40 @@
 const API_URL = 'http://localhost:5000/api';
 
 export const authService = {
+  async register(userData: { username: string; email: string; password: string }) {
+    const response = await fetch(`${API_URL}/userRegister`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Registration failed');
+    }
+
+    return response.json();
+  },
+
+  async login(credentials: { email: string; password: string }) {
+    const response = await fetch(`${API_URL}/userLogin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+      throw new Error('Login failed');
+    }
+
+    return response.json();
+  },
+
   async loginWithFirebase(firebaseToken: string) {
     const response = await fetch(`${API_URL}/firebaselogin`, {
       method: 'POST',

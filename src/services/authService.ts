@@ -82,5 +82,22 @@ export const authService = {
       updatedAt: data.updatedAt
     });
     return data;
+  },
+
+  async updateUserProfile(updateData: { username?: string; oldPassword?: string; newPassword?: string }) {
+    const response = await fetch(`${API_URL}/userProfile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update profile');
+    }
+
+    return response.json();
   }
 };

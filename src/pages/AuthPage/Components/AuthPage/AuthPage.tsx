@@ -83,11 +83,8 @@ interface AuthPageProps {
         <button 
         onClick={handleGuestLogin}
         className="flex items-center cursor-pointer p-3 rounded-full transition duration-300 hover:scale-105 bg-yellow-400 shadow-lg">
-           <img 
-            src="https://cdn-icons-png.flaticon.com/512/847/847969.png" 
-            alt="Guest icon" 
-            className="w-6 h-6 mr-2" />
-            <span className="font-semibold">Continue as Guest</span>
+          
+            <span className="font-semibold">Register A New User</span>
         </button>
               
         </div>

@@ -7,6 +7,7 @@ export const authService = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ firebaseToken }),
     });
 
@@ -30,10 +31,22 @@ export const authService = {
   },
 
   async getUserProfile() {
-    const response = await fetch(`${API_URL}/userProfile`);
+    console.log('Getting user profile');
+    const response = await fetch(`${API_URL}/userProfile`, {
+      credentials: 'include',
+    });
+    console.log("[Profile API Response]:", response);
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
     }
-    return response.json();
+    const data = await response.json();
+    console.log("[Profile Data]:", {
+      username: data.username,
+      email: data.email,
+      authProvider: data.authProvider,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt
+    });
+    return data;
   }
 };

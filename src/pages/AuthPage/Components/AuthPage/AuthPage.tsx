@@ -2,6 +2,7 @@ import { signInAsGuest, signInWithGoogle, signInWithGitHub } from "../../../../b
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { authService } from "../../../../services/authService";
+import { useState } from "react";
 
 interface AuthPageProps {
     closeModal: () => void;
@@ -10,6 +11,7 @@ interface AuthPageProps {
   const AuthPage: React.FC<AuthPageProps> = ({ closeModal }) => {
     const { setUser } = useAuth();
     const navigate = useNavigate();
+    const [isLogin, setIsLogin] = useState(true);
 
     const handleBackendAuth = async (user: any) => {
       try {
@@ -52,8 +54,58 @@ interface AuthPageProps {
             ✖
           </button>
           <h2 className="text-2xl font-bold mb-4 text-center">Sign in to Sync</h2>
+          <div className="flex flex-col items-center w-full">
+            {isLogin ? (
+              <>
+                <input 
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
+                  type="email" 
+                  placeholder="Email" 
+                />
+                <input 
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
+                  type="password" 
+                  placeholder="Password" 
+                />
+              </>
+            ) : (
+              <>
+                <input 
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm "
+                  type="text" 
+                  placeholder="Username" 
+                />
+                <input 
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm"
+                  type="email" 
+                  placeholder="Email" 
+                />
+                <input 
+                  className="border border-[#383838] rounded-full p-2 m-2 w-[75%] text-sm "
+                  type="password" 
+                  placeholder="Password" 
+                />
+              </>
+            )}
+            <div className="flex justify-center m-2 w-full">
+              <button 
+                onClick={handleGuestLogin}
+                className="flex items-center justify-center w-[50%] text-center cursor-pointer p-2.5 rounded-full transition duration-300 hover:scale-105 bg-yellow-400 shadow-lg text-md">
+                <span className="font-medium">{isLogin ? "Login" : "Register"}</span>
+              </button>
+            </div>
+            <div className="text-sm text-center mt-2"> 
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-blue-600 hover:underline cursor-pointer">
+                {isLogin ? "New user? Sign up" : "Already have an account? Login"}
+              </button>
+            </div>
+            <div className="text-sm text-center text-gray-500 m-2">Or</div>
+          </div>
               {/* Google Button */}        
             <div className="flex justify-center items-grid w-full">
+             
         <button 
          onClick={handleGoogleLogin}
         className="flex items-center cursor-pointer p-3 border rounded-full transition duration-300 hover:scale-105">
@@ -79,15 +131,7 @@ interface AuthPageProps {
         </button>
         </div>
         {/*Microsoft Button */}
-        <div className="flex justify-center items-grid w-full">
-        <button 
-        onClick={handleGuestLogin}
-        className="flex items-center cursor-pointer p-3 rounded-full transition duration-300 hover:scale-105 bg-yellow-400 shadow-lg">
-          
-            <span className="font-semibold">Register A New User</span>
-        </button>
-              
-        </div>
+        
         </div>
       </div>
     );

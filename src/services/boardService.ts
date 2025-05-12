@@ -1,7 +1,7 @@
 import { Page, WhiteboardObject } from '../pages/WhiteBoard/Types/WhiteboardTypes';
 import axios from 'axios';
 
-interface Board {
+export interface Board {
   _id: string;
   name: string;
   createdBy: string;
@@ -24,7 +24,7 @@ interface User {
   updatedAt: string;
 }
 
-interface BoardCollaborator {
+export interface Collaborator {
   user: string;
   permission: 'view' | 'edit';
 }
@@ -32,7 +32,7 @@ interface BoardCollaborator {
 interface CreateBoardData {
   name: string;
   security: 'private' | 'public';
-  collaborators: BoardCollaborator[];
+  collaborators: Collaborator[];
 }
 
 const API_URL = 'http://localhost:5000/api';
@@ -51,7 +51,7 @@ export const boardService = {
 
   // Get a single board by ID
   async getBoard(id: string): Promise<Board> {
-    const response = await fetch(`${API_URL}/boards/${id}`, {
+    const response = await fetch(`${API_URL}/board/${id}`, {
       credentials: 'include'
     });
     if (!response.ok) {

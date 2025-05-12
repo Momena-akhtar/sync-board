@@ -109,3 +109,4 @@ export interface Page {
   objects: WhiteboardObject[];
   backgroundColor: string;
 }
+

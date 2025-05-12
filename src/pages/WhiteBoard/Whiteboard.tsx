@@ -1,13 +1,21 @@
 import SidePanel from "./SidePanel";
 import MainBoard from "./MainBoard/MainBoard";
 import Features from "./Features";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Page, WhiteboardObject } from "./Types/WhiteboardTypes";
 import { v4 as uuidv4 } from 'uuid';
+import { useParams } from 'react-router-dom';
+import boardService from "../../services/boardService";
+import { Board , Collaborator} from "../../services/boardService";
 
 const WhiteBoard = () => {
-    const [title, setTitle] = useState("Untitled");
+    const { id } = useParams();
+    const [loading, setLoading] = useState(true);
+    const [board, setBoard] = useState<Board | null>(null);
+    const [title, setTitle] = useState("Untitled" );
+    const [createdBy, setCreatedBy] = useState("")
+    const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const [sidePanelVisible, setSidePanelVisible] = useState(true);
     const [featuresPanelVisible, setFeaturesPanelVisible] = useState(true);
     const [pages, setPages] = useState<Page[]>([{
@@ -17,6 +25,25 @@ const WhiteBoard = () => {
       backgroundColor: "#1E1E1E"
     }]);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
+    
+  useEffect(() => {
+    const fetchBoard = async () => {
+      try {
+        if (!id) return; // No id? Exit
+        const data = await boardService.getBoard(id);
+        setBoard(data);
+        setTitle(data.name || "Untitled");
+        setCreatedBy(data.createdBy || "null")
+        setCollaborators(data.collaborators || []);
+        console.log(data.name)
+      } catch (err) {
+        console.error('Failed to fetch board:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBoard();
+  }, [id]);
 
     const addNewPage = () => {
       setPages(prevPages => [...prevPages, {
@@ -39,6 +66,7 @@ const WhiteBoard = () => {
       });
     };
 
+
     return (
       <div className="flex h-screen w-screen bg-[#1E1E1E]">
         {/* Left Panel (SidePanel) */}
@@ -48,7 +76,7 @@ const WhiteBoard = () => {
           {sidePanelVisible && (
             <div className="text-white text-sm font-['Kumbh_Sans'] p-4">
               <SidePanel 
-                title={title} 
+                title={title}
                 setTitle={setTitle}
                 pages={pages}
                 currentPageIndex={currentPageIndex}
@@ -93,6 +121,8 @@ const WhiteBoard = () => {
                 whiteboardElements={pages}
                 onBackgroundColorChange={updateBackgroundColor}
                 currentPageIndex={currentPageIndex}
+                createdBy={createdBy}
+                collaborators={collaborators}
               />
             </div>
           )}

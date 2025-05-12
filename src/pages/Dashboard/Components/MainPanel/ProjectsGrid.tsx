@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AiOutlineAppstore, AiOutlineUnorderedList } from "react-icons/ai";
 import untitledImage from "../assets/untitled.png";
 import boardService from "../../../../services/boardService";
-
+import { useNavigate } from "react-router-dom";
 interface Project {
   _id: string;
   name: string;
@@ -14,6 +14,7 @@ interface Project {
 }
 
 const ProjectsGrid = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -92,7 +93,8 @@ const ProjectsGrid = () => {
                       const target = e.target as HTMLImageElement;
                       target.src = untitledImage;
                     }}
-                  />
+                    onClick={() => navigate(`/whiteboard/${proj._id}`)}
+                  />  
                   {proj.security === 'private' && (
                     <div className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded text-xs text-white">
                       Private

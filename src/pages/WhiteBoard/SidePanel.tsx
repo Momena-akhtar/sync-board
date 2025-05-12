@@ -24,7 +24,7 @@ const SidePanel: React.FC<SidePanelProps> = ({
                 {/* <FaProjectDiagram className="mr-2 text-white" /> */}
                 <input 
                     type="text" 
-                    defaultValue={title}
+                    value={title}
                     onChange={(e) => setTitle(e.target.value)}    
                     className="bg-transparent rounded-lg outline-none border border-[#383838] p-2 text-white"
                 />

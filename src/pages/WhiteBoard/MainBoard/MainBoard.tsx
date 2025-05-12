@@ -137,9 +137,8 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         "arrow",
       ].includes(activeTool)
     ) {
-      console.log("Being called on line 140 MainBoard")
+      console.log("Being called on line 140 MainBoard");
       // Switch back to move tool after shape is drawn
-     
     }
   }, [isDrawing, currentShape, activeTool]);
 
@@ -495,6 +494,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   const renderShape = (shape: WhiteboardObject) => {
     switch (shape.type) {
       case "rectangle":
+        console.log(shape.fill)
         return (
           <div
             key={shape.id}
@@ -504,7 +504,8 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: shape.fill,
+              backgroundColor: "black",
+
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
               cursor: activeTool === "move" ? "pointer" : "default",
               zIndex: shape.isSelected ? 10 : 1,
@@ -522,7 +523,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: shape.fill,
+              backgroundColor: "black",
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
               cursor: activeTool === "move" ? "pointer" : "default",
               zIndex: shape.isSelected ? 10 : 1,
@@ -531,42 +532,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
           />
         );
       case "triangle":
-      case "diamond":
-      case "hexagon":
-      case "arrow":
-        const pointsArray = shape.points || [];
-        let svgPath = "";
+        // Calculate points for triangle
+        // Using an equilateral triangle centered in the shape's bounding box
+        const trianglePoints = [
+          `${shape.width / 2},0`, // top point
+          `${shape.width},${shape.height}`, // bottom right
+          `0,${shape.height}`, // bottom left
+        ].join(" ");
 
-        if (shape.type === "arrow" && pointsArray.length >= 2) {
-          // Arrow needs special handling with arrowhead
-
-          const [start, end] = pointsArray;
-          // Calculate arrow direction
-          const dx = end.x - start.x;
-          const dy = end.y - start.y;
-          const angle = Math.atan2(dy, dx);
-
-          // Arrow line
-          svgPath = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
-
-          // Add arrowhead
-          const arrowLength = 15;
-          const arrowAngle = Math.PI / 6; // 30 degrees
-
-          const x1 = end.x - arrowLength * Math.cos(angle - arrowAngle);
-          const y1 = end.y - arrowLength * Math.sin(angle - arrowAngle);
-          const x2 = end.x - arrowLength * Math.cos(angle + arrowAngle);
-          const y2 = end.y - arrowLength * Math.sin(angle + arrowAngle);
-
-          svgPath += ` M ${end.x} ${end.y} L ${x1} ${y1} M ${end.x} ${end.y} L ${x2} ${y2}`;
-        } else if (pointsArray.length > 0) {
-          // For other polygon shapes
-          svgPath = `M ${pointsArray[0].x} ${pointsArray[0].y}`;
-          for (let i = 1; i < pointsArray.length; i++) {
-            svgPath += ` L ${pointsArray[i].x} ${pointsArray[i].y}`;
-          }
-          svgPath += " Z"; // Close the path
-        }
         return (
           <div
             key={shape.id}
@@ -581,14 +554,112 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
           >
-            <svg
-              width="100%"
-              height="100%"
-              style={{ position: "absolute", pointerEvents: "none" }}
-            >
-              <path
-                d={svgPath}
-                fill={shape.type === "arrow" ? "none" : shape.fill}
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <polygon
+                points={trianglePoints}
+                fill={shape.fill}
+                stroke={shape.stroke}
+                strokeWidth={shape.strokeWidth}
+              />
+            </svg>
+          </div>
+        );
+      case "diamond":
+        return (
+          <div
+            key={shape.id}
+            className="absolute"
+            style={{
+              left: `${shape.x}px`,
+              top: `${shape.y}px`,
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              backgroundColor: "black",
+              border: `${shape.strokeWidth}px solid ${shape.stroke}`,
+              transform: "rotate(45deg)",
+              transformOrigin: "center center",
+              cursor: activeTool === "move" ? "pointer" : "default",
+              zIndex: shape.isSelected ? 10 : 1,
+            }}
+            onClick={(e) => handleShapeClick(shape.id, e)}
+          />
+        );
+      case "hexagon":
+        // Calculate points for hexagon
+        const halfWidth = shape.width / 2;
+        const halfHeight = shape.height / 2;
+
+        // Create points for hexagon
+        const points = [
+          `${halfWidth * 0.5},0`, // top-left
+          `${halfWidth * 1.5},0`, // top-right
+          `${shape.width},${halfHeight}`, // right
+          `${halfWidth * 1.5},${shape.height}`, // bottom-right
+          `${halfWidth * 0.5},${shape.height}`, // bottom-left
+          `0,${halfHeight}`, // left
+        ].join(" ");
+
+        return (
+          <div
+            key={shape.id}
+            className="absolute"
+            style={{
+              left: `${shape.x}px`,
+              top: `${shape.y}px`,
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              cursor: activeTool === "move" ? "pointer" : "default",
+              zIndex: shape.isSelected ? 10 : 1,
+            }}
+            onClick={(e) => handleShapeClick(shape.id, e)}
+          >
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <polygon
+                points={points}
+                fill={shape.fill}
+                stroke={shape.stroke}
+                strokeWidth={shape.strokeWidth}
+              />
+            </svg>
+          </div>
+        );
+      case "arrow":
+        console.log("Arrow is called")
+        // Calculate dimensions for the arrow
+        const arrowWidth = shape.width;
+        const arrowHeight = shape.height;
+        const headWidth = Math.min(arrowHeight, arrowWidth * 0.3); // Arrow head width is 30% of total width
+        const shaftHeight = arrowHeight * 0.4; // Shaft height is 40% of total height
+
+        // Define arrow points for a right-pointing arrow
+        const arrowPoints = [
+          `0,${(arrowHeight - shaftHeight) / 2}`, // Left of shaft, top
+          `${arrowWidth - headWidth},${(arrowHeight - shaftHeight) / 2}`, // Right of shaft, top
+          `${arrowWidth - headWidth},0`, // Bottom of arrow head
+          `${arrowWidth},${arrowHeight / 2}`, // Arrow tip
+          `${arrowWidth - headWidth},${arrowHeight}`, // Top of arrow head
+          `${arrowWidth - headWidth},${(arrowHeight + shaftHeight) / 2}`, // Right of shaft, bottom
+          `0,${(arrowHeight + shaftHeight) / 2}`, // Left of shaft, bottom
+        ].join(" ");
+
+        return (
+          <div
+            key={shape.id}
+            className="absolute"
+            style={{
+              left: `${shape.x}px`,
+              top: `${shape.y}px`,
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              cursor: activeTool === "move" ? "pointer" : "default",
+              zIndex: shape.isSelected ? 10 : 1,
+            }}
+            onClick={(e) => handleShapeClick(shape.id, e)}
+          >
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <polygon
+                points={arrowPoints}
+                fill={shape.fill}
                 stroke={shape.stroke}
                 strokeWidth={shape.strokeWidth}
               />
@@ -606,10 +677,10 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     console.log(`This is the currentShape : ${currentShape}`);
   }, [objects, currentShape]);
 
-  useEffect(()=>{
-    console.log("***************")
-    console.log(`This is the active tool : ${activeTool}`)
-  },[activeTool])
+  useEffect(() => {
+    console.log("***************");
+    console.log(`This is the active tool : ${activeTool}`);
+  }, [activeTool]);
   return (
     <div
       onMouseDown={handleMouseDown}

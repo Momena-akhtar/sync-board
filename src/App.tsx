@@ -13,6 +13,7 @@ const App = () => {
       <Route path="/auth" element={<AuthPage closeModal={() => {}} />} />
       <Route path="/dashboard/*" element={<Dashboard />} /> 
       <Route path="/whiteboard" element={<Whiteboard />} />
+      <Route path="/whiteboard/:id" element={<Whiteboard />} />
     </Routes>
 
       </div>

@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { AiOutlineAppstore, AiOutlineUnorderedList } from "react-icons/ai";
 import untitledImage from "../assets/untitled.png";
+import boardService from "../../../../services/boardService";
 
 interface Project {
   _id: string;
   name: string;
   thumbnail_img: string;
+  createdAt: string;
   updatedAt: string;
+  security: 'public' | 'private';
+  role: 'owner' | 'editor' | 'viewer';
 }
 
 const ProjectsGrid = () => {
@@ -16,14 +20,22 @@ const ProjectsGrid = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('/api/getBoards');
-        const data = await response.json();
-        setProjects(data);
+        const data = await boardService.getBoards();
+        const mappedProjects: Project[] = data.map(board => ({
+          _id: board._id,
+          name: board.name,
+          thumbnail_img: board.thumbnail_img || '',
+          createdAt: board.createdAt.toString(),
+          updatedAt: board.updatedAt.toString(),
+          security: board.security,
+          role: 'owner' // Since these are boards created by the user
+        }));
+        setProjects(mappedProjects);
       } catch (error) {
         console.error('Failed to fetch projects:', error);
       }
     };
-
+  
     fetchProjects();
   }, []);
 
@@ -71,13 +83,27 @@ const ProjectsGrid = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
             {projects.map((proj, index) => (
               <div key={index} className="border cursor-pointer border-[#383838] rounded-lg p-2">
-                <img 
-                  src={proj.thumbnail_img || untitledImage} 
-                  alt={proj.name} 
-                  className="w-full h-40 object-cover rounded-md" 
-                />
+                <div className="relative">
+                  <img 
+                    src={proj.thumbnail_img || untitledImage} 
+                    alt={proj.name} 
+                    className="w-full h-40 object-cover rounded-md" 
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = untitledImage;
+                    }}
+                  />
+                  {proj.security === 'private' && (
+                    <div className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded text-xs text-white">
+                      Private
+                    </div>
+                  )}
+                </div>
                 <div className="text-white font-['Kumbh_Sans'] text-sm mt-2">{proj.name}</div>
-                <div className="text-gray-400 text-xs">Last edited {new Date(proj.updatedAt).toLocaleDateString()}</div>
+                <div className="flex justify-between items-center mt-1">
+                  <div className="text-gray-400 text-xs">Last edited {new Date(proj.updatedAt).toLocaleDateString()}</div>
+                  <div className="text-gray-400 text-xs">{proj.role}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -86,13 +112,25 @@ const ProjectsGrid = () => {
           <div className="flex flex-col space-y-3">
             {projects.map((proj, index) => (
               <div key={index} className="border border-gray-900 rounded-lg p-2 flex items-center space-x-4">
-                <img 
-                  src={proj.thumbnail_img || untitledImage} 
-                  alt={proj.name} 
-                  className="w-12 h-12 object-cover rounded-md" 
-                />
+                <div className="relative">
+                  <img 
+                    src={proj.thumbnail_img || untitledImage} 
+                    alt={proj.name} 
+                    className="w-12 h-12 object-cover rounded-md" 
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = untitledImage;
+                    }}
+                  />
+                  {proj.security === 'private' && (
+                    <div className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded text-xs text-white">
+                      Private
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1 text-white text-sm">{proj.name}</div>
                 <div className="text-gray-400 text-xs">Last edited {new Date(proj.updatedAt).toLocaleDateString()}</div>
+                <div className="text-gray-400 text-xs">{proj.role}</div>
               </div>
             ))}
           </div>

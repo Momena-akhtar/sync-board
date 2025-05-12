@@ -7,13 +7,15 @@ interface OptionProps {
   icon_color: string;
   hover_color: string;
   option_name: string;
-  option_url: "../../../WhiteBoard/Whiteboard"; // Path to the whiteboard or other destination
+  option_url?: string;
+  onClick?: () => void;
 }
 
 const Option: React.FC<OptionProps> = ({
   icon_color,
   hover_color,
   option_name,
+  onClick,
 }) => {
   const [hover, setHover] = useState(false);
   const navigate = useNavigate(); // React Router navigation
@@ -32,8 +34,9 @@ const Option: React.FC<OptionProps> = ({
   };
 
   const handleClick = () => {
-    if (option_name === "New Design File") {
-      // If using React Router
+    if (onClick) {
+      onClick();
+    } else if (option_name === "New Design File") {
       navigate("/whiteboard");
     }
   };

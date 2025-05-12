@@ -1,4 +1,5 @@
 import { Page, WhiteboardObject } from '../pages/WhiteBoard/Types/WhiteboardTypes';
+import axios from 'axios';
 
 interface Board {
   _id: string;
@@ -15,12 +16,31 @@ interface Board {
   updatedAt: Date;
 }
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BoardCollaborator {
+  user: string;
+  permission: 'view' | 'edit';
+}
+
+interface CreateBoardData {
+  name: string;
+  security: 'private' | 'public';
+  collaborators: BoardCollaborator[];
+}
+
+const API_URL = 'http://localhost:5000/api';
 
 export const boardService = {
   // Get all boards for the current user
   async getBoards(): Promise<Board[]> {
-    const response = await fetch(`${API_URL}/boards`, {
+    const response = await fetch(`${API_URL}/getBoards`, {
       credentials: 'include'
     });
     if (!response.ok) {
@@ -41,36 +61,14 @@ export const boardService = {
   },
 
   // Create a new board
-  async createBoard(
-    name: string,
-    pages: Page[],
-    security: 'public' | 'private' = 'private'
-  ): Promise<Board> {
-    // Convert pages to shapes format
-    const shapes = pages.map(page => ({
-      id: page.id,
-      name: page.name,
-      objects: page.objects,
-      backgroundColor: page.backgroundColor
-    }));
-
-    const response = await fetch(`${API_URL}/boards`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        name,
-        shapes,
-        security
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create board');
+  async createBoard(boardData: CreateBoardData): Promise<{ _id: string }> {
+    try {
+      const response = await axios.post(`${API_URL}/createBoard`, boardData, { withCredentials: true});
+      return response.data;
+    } catch (error) {
+      console.error('Error creating board:', error);
+      throw error;
     }
-    return response.json();
   },
 
   // Update an existing board
@@ -146,5 +144,29 @@ export const boardService = {
       throw new Error('Failed to update thumbnail');
     }
     return response.json();
+  },
+
+
+  // Search users by name or email
+  async searchUsers(query: string): Promise<User[]> {
+    try {
+      // Determine if it's an email or username
+      const isEmail = query.includes('@');
+  
+      const paramName = isEmail ? 'email' : 'username';
+  
+      const response = await axios.get(`${API_URL}/user/search?${paramName}=${encodeURIComponent(query)}`, {
+        withCredentials: true,
+      });
+  
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
   }
+  
+
 }; 
+
+export default boardService;

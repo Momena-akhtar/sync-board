@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import BottomPanel from "./BottomPanel";
-import { WhiteboardObject, isShape, ImageObject } from "../Types/WhiteboardTypes";
+import {
+  WhiteboardObject,
+  isShape,
+  ImageObject,
+} from "../Types/WhiteboardTypes";
 import { TextToolHandler } from "../Handlers/Tools/TextToolHandler";
 import { FrameToolHandler } from "../Handlers/Tools/FrameToolHandler";
 import { PenToolHandler } from "../Handlers/Tools/PenToolHandler";
@@ -16,8 +20,10 @@ interface MainBoardProps {
 
 const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   // Wrap setObjects to make it compatible with React state setters
-  const wrappedSetObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>> = (value) => {
-    if (typeof value === 'function') {
+  const wrappedSetObjects: React.Dispatch<
+    React.SetStateAction<WhiteboardObject[]>
+  > = (value) => {
+    if (typeof value === "function") {
       setObjects(value(objects));
     } else {
       setObjects(value);
@@ -30,10 +36,18 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentColor, setCurrentColor] = useState<string>("#ffffff");
-  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
-  const [currentFrame, setCurrentFrame] = useState<WhiteboardObject | null>(null);
-  const [currentStroke, setCurrentStroke] = useState<WhiteboardObject | null>(null);
-  const [currentShape, setCurrentShape] = useState<WhiteboardObject | null>(null);
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const [currentFrame, setCurrentFrame] = useState<WhiteboardObject | null>(
+    null
+  );
+  const [currentStroke, setCurrentStroke] = useState<WhiteboardObject | null>(
+    null
+  );
+  const [currentShape, setCurrentShape] = useState<WhiteboardObject | null>(
+    null
+  );
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [resizeData, setResizeData] = useState<{
     id: string;
@@ -93,7 +107,16 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   // Add cleanup effect when changing tools
   useEffect(() => {
     // Clean up any active shape drawing state when changing tools
-    if (!['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(activeTool)) {
+    if (
+      ![
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
+    ) {
       setCurrentShape(null);
       setIsDrawing(false);
       setStartPos(null);
@@ -102,9 +125,21 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
 
   // Add effect to handle shape drawing completion
   useEffect(() => {
-    if (isDrawing === false && currentShape === null && ['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(activeTool)) {
+    if (
+      isDrawing === false &&
+      currentShape === null &&
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
+    ) {
+      console.log("Being called on line 140 MainBoard")
       // Switch back to move tool after shape is drawn
-      setActiveTool('move');
+     
     }
   }, [isDrawing, currentShape, activeTool]);
 
@@ -224,7 +259,10 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         setCurrentFrame,
       });
     } else if (activeTool === "text") {
-      TextToolHandler.onMouseDown(e, { objects, setObjects: wrappedSetObjects });
+      TextToolHandler.onMouseDown(e, {
+        objects,
+        setObjects: wrappedSetObjects,
+      });
     } else if (activeTool === "pen") {
       PenToolHandler.onMouseDown(e, {
         objects,
@@ -248,7 +286,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       // Handle image dragging start
       const imageElement = clickedElement.closest('[data-type="image-object"]');
       if (imageElement) {
-        const imageId = imageElement.getAttribute('data-id');
+        const imageId = imageElement.getAttribute("data-id");
         if (imageId) {
           ImageToolHandler.startDragging(imageId, e, {
             objects,
@@ -258,9 +296,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         }
       }
     } else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
-        activeTool
-      )
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseDown(e, activeTool, {
         objects,
@@ -295,7 +338,9 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       });
     } else if (activeTool === "move") {
       // Handle image dragging
-      const draggingImage = objects.find(obj => obj.type === 'image' && obj.isDragging);
+      const draggingImage = objects.find(
+        (obj) => obj.type === "image" && obj.isDragging
+      );
       if (draggingImage) {
         ImageToolHandler.handleDrag(draggingImage.id, e, {
           objects,
@@ -304,9 +349,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         });
       }
     } else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
-        activeTool
-      )
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseMove(e, activeTool, {
         isDrawing,
@@ -346,7 +396,9 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       });
     } else if (activeTool === "move") {
       // Handle image drag end
-      const draggingImage = objects.find(obj => obj.type === 'image' && obj.isDragging);
+      const draggingImage = objects.find(
+        (obj) => obj.type === "image" && obj.isDragging
+      );
       if (draggingImage) {
         ImageToolHandler.stopDragging(draggingImage.id, {
           objects,
@@ -357,9 +409,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     }
     // Handle shape drawing completion
     else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
-        activeTool
-      )
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseUp(e, activeTool, {
         isDrawing,
@@ -386,11 +443,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     id: string,
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    TextToolHandler.onChangeText(id, e.target.value, { objects, setObjects: wrappedSetObjects });
+    TextToolHandler.onChangeText(id, e.target.value, {
+      objects,
+      setObjects: wrappedSetObjects,
+    });
   };
 
   const handleTextBlur = (id: string) => {
-    TextToolHandler.onFinishEditing(id, { objects, setObjects: wrappedSetObjects });
+    TextToolHandler.onFinishEditing(id, {
+      objects,
+      setObjects: wrappedSetObjects,
+    });
     setActiveTool("move");
   };
 
@@ -398,7 +461,10 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     // Prevent the event from bubbling up to the canvas
     e.stopPropagation();
     // Start editing the text object
-    TextToolHandler.onStartEditing(id, { objects, setObjects: wrappedSetObjects });
+    TextToolHandler.onStartEditing(id, {
+      objects,
+      setObjects: wrappedSetObjects,
+    });
   };
   const handleImageClick = (imageId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -533,6 +599,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return null;
     }
   };
+
+  useEffect(() => {
+    console.log("--------------------");
+    console.log("This is the objects:\n", JSON.stringify(objects, null, 2));
+    console.log(`This is the currentShape : ${currentShape}`);
+  }, [objects, currentShape]);
+
+  useEffect(()=>{
+    console.log("***************")
+    console.log(`This is the active tool : ${activeTool}`)
+  },[activeTool])
   return (
     <div
       onMouseDown={handleMouseDown}
@@ -542,9 +619,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       className="whiteboard-content relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-rounded p-0 m-0"
     >
       {/* Checkerboard background */}
-      <div
-        className="absolute inset-0"
-      />
+      <div className="absolute inset-0" />
       {/* Render all shape objects */}
       {objects
         .filter((obj) =>
@@ -585,12 +660,16 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       {/* Render images */}
       {objects
         .filter((obj): obj is ImageObject => obj.type === "image")
-        .map(imageObj => (
+        .map((imageObj) => (
           <div
             key={imageObj.id}
             data-type="image-object"
             data-id={imageObj.id}
-            className={`absolute ${imageObj.isSelected && !imageObj.isDragging ? 'ring-2 ring-blue-500' : ''}`}
+            className={`absolute ${
+              imageObj.isSelected && !imageObj.isDragging
+                ? "ring-2 ring-blue-500"
+                : ""
+            }`}
             style={{
               left: `${imageObj.x}px`,
               top: `${imageObj.y}px`,
@@ -598,7 +677,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
               height: `${imageObj.height}px`,
               cursor: activeTool === "move" ? "move" : "default",
               zIndex: imageObj.isSelected ? 10 : 1,
-              transform: imageObj.isDragging ? 'none' : undefined,
+              transform: imageObj.isDragging ? "none" : undefined,
             }}
             onClick={(e) => handleImageClick(imageObj.id, e)}
           >
@@ -613,16 +692,18 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
             />
 
             {/* Resize handles for selected images - hide during drag */}
-            {imageObj.isSelected && !imageObj.isDragging && activeTool === "move" && (
-              <ShapeResizeHandles
-                id={imageObj.id}
-                x={imageObj.x}
-                y={imageObj.y}
-                width={imageObj.width}
-                height={imageObj.height}
-                onResize={handleResizeStart}
-              />
-            )}
+            {imageObj.isSelected &&
+              !imageObj.isDragging &&
+              activeTool === "move" && (
+                <ShapeResizeHandles
+                  id={imageObj.id}
+                  x={imageObj.x}
+                  y={imageObj.y}
+                  width={imageObj.width}
+                  height={imageObj.height}
+                  onResize={handleResizeStart}
+                />
+              )}
           </div>
         ))}
       {/* Existing frames */}
@@ -754,8 +835,8 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         </div>
       )}
       <div className="fixed bottom-8 left-0 w-full flex justify-center">
-        <BottomPanel 
-          activeTool={activeTool} 
+        <BottomPanel
+          activeTool={activeTool}
           setActiveTool={setActiveTool}
           currentColor={currentColor}
           setCurrentColor={setCurrentColor}

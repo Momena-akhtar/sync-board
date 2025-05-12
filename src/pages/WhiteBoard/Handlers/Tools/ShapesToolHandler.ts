@@ -139,6 +139,7 @@ export class ShapesToolHandler {
     }
 
     static onMouseDown(e: React.MouseEvent, shapeType: string, state: ShapeToolState) {
+        console.log("Ön mouse down event called")
         const { setIsDrawing, setStartPos, setCurrentShape, currentColor } = state;
 
         if (!setIsDrawing || !setStartPos || !setCurrentShape) return;
@@ -152,10 +153,12 @@ export class ShapesToolHandler {
 
         // Create initial shape with minimal size
         const initialShape = this.createShape(shapeType, x, y, 0, 0, currentColor);
+        console.log(`This is the initial shape in onMouseDown ${initialShape}`)
         setCurrentShape(initialShape);
     }
 
     static onMouseMove(e: React.MouseEvent, shapeType: string, state: ShapeToolMoveState & { currentColor?: string }) {
+        console.log("On mouse move called ")
         const { isDrawing, startPos, currentShape, setCurrentShape, currentColor } = state;
 
         if (!isDrawing || !startPos || !currentShape) return;
@@ -182,6 +185,7 @@ export class ShapesToolHandler {
     }
 
     static onMouseUp(e: React.MouseEvent, shapeType: string, state: ShapeToolUpState) {
+        console.log("On mouse up called")
         const { 
             isDrawing, 
             currentShape, 
@@ -224,6 +228,7 @@ export class ShapesToolHandler {
     }
 
     static selectShape(id: string, objects: WhiteboardObject[], setObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>>) {
+       console.log("select shape called")
         const updatedObjects = objects.map(obj => ({
             ...obj,
             isSelected: obj.id === id
@@ -240,6 +245,7 @@ export class ShapesToolHandler {
     }
 
     static resizeShape(shapeId: string, newWidth: number, newHeight: number, state: ShapeSelectState) {
+        console.log("resize shape called now")
         const { objects, setObjects } = state;
         
         const updatedObjects = objects.map(obj => {

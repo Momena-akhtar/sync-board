@@ -18,6 +18,7 @@ const ProjectsGrid = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [projects, setProjects] = useState<Project[]>([]);
   const [showMenu, setShowMenu] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -40,6 +41,24 @@ const ProjectsGrid = () => {
   
     fetchProjects();
   }, []);
+
+  const handleDelete = async (boardId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+      await boardService.deleteBoard(boardId);
+      // Remove the deleted project from the state
+      setProjects(prevProjects => prevProjects.filter(project => project._id !== boardId));
+      setShowMenu(null);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="sm:flex-8 flex flex-col overflow-hidden">
@@ -123,14 +142,11 @@ const ProjectsGrid = () => {
                             Update
                           </button>
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Handle delete
-                              setShowMenu(null);
-                            }}
-                            className="w-full text-left px-4 py-2 cursor-pointer text-xs text-red-500 hover:bg-red-500/10 transition-colors"
+                            onClick={(e) => handleDelete(proj._id, e)}
+                            disabled={isDeleting}
+                            className="w-full text-left px-4 py-2 cursor-pointer text-xs text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Delete
+                            {isDeleting ? 'Deleting...' : 'Delete'}
                           </button>
                         </div>
                       )}

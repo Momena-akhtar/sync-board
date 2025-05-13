@@ -115,7 +115,7 @@ export const boardService = {
 
   // Delete a board
   async deleteBoard(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/boards/${id}`, {
+    const response = await fetch(`${API_URL}/board/${id}`, {
       method: 'DELETE',
       credentials: 'include'
     });

@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import BottomPanel from "./BottomPanel";
-import { WhiteboardObject, isShape, ImageObject } from "../Types/WhiteboardTypes";
+import {
+  WhiteboardObject,
+  isShape,
+  ImageObject,
+} from "../Types/WhiteboardTypes";
 import { TextToolHandler } from "../Handlers/Tools/TextToolHandler";
 import { FrameToolHandler } from "../Handlers/Tools/FrameToolHandler";
 import { PenToolHandler } from "../Handlers/Tools/PenToolHandler";
@@ -16,8 +20,10 @@ interface MainBoardProps {
 
 const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   // Wrap setObjects to make it compatible with React state setters
-  const wrappedSetObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>> = (value) => {
-    if (typeof value === 'function') {
+  const wrappedSetObjects: React.Dispatch<
+    React.SetStateAction<WhiteboardObject[]>
+  > = (value) => {
+    if (typeof value === "function") {
       setObjects(value(objects));
     } else {
       setObjects(value);
@@ -30,10 +36,18 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentColor, setCurrentColor] = useState<string>("#ffffff");
-  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
-  const [currentFrame, setCurrentFrame] = useState<WhiteboardObject | null>(null);
-  const [currentStroke, setCurrentStroke] = useState<WhiteboardObject | null>(null);
-  const [currentShape, setCurrentShape] = useState<WhiteboardObject | null>(null);
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const [currentFrame, setCurrentFrame] = useState<WhiteboardObject | null>(
+    null
+  );
+  const [currentStroke, setCurrentStroke] = useState<WhiteboardObject | null>(
+    null
+  );
+  const [currentShape, setCurrentShape] = useState<WhiteboardObject | null>(
+    null
+  );
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [resizeData, setResizeData] = useState<{
     id: string;
@@ -93,7 +107,16 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   // Add cleanup effect when changing tools
   useEffect(() => {
     // Clean up any active shape drawing state when changing tools
-    if (!['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(activeTool)) {
+    if (
+      ![
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
+    ) {
       setCurrentShape(null);
       setIsDrawing(false);
       setStartPos(null);
@@ -102,9 +125,20 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
 
   // Add effect to handle shape drawing completion
   useEffect(() => {
-    if (isDrawing === false && currentShape === null && ['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(activeTool)) {
+    if (
+      isDrawing === false &&
+      currentShape === null &&
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
+    ) {
+      console.log("Being called on line 140 MainBoard");
       // Switch back to move tool after shape is drawn
-      setActiveTool('move');
     }
   }, [isDrawing, currentShape, activeTool]);
 
@@ -224,7 +258,10 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         setCurrentFrame,
       });
     } else if (activeTool === "text") {
-      TextToolHandler.onMouseDown(e, { objects, setObjects: wrappedSetObjects });
+      TextToolHandler.onMouseDown(e, {
+        objects,
+        setObjects: wrappedSetObjects,
+      });
     } else if (activeTool === "pen") {
       PenToolHandler.onMouseDown(e, {
         objects,
@@ -248,7 +285,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       // Handle image dragging start
       const imageElement = clickedElement.closest('[data-type="image-object"]');
       if (imageElement) {
-        const imageId = imageElement.getAttribute('data-id');
+        const imageId = imageElement.getAttribute("data-id");
         if (imageId) {
           ImageToolHandler.startDragging(imageId, e, {
             objects,
@@ -258,9 +295,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         }
       }
     } else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
-        activeTool
-      )
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseDown(e, activeTool, {
         objects,
@@ -295,7 +337,9 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       });
     } else if (activeTool === "move") {
       // Handle image dragging
-      const draggingImage = objects.find(obj => obj.type === 'image' && obj.isDragging);
+      const draggingImage = objects.find(
+        (obj) => obj.type === "image" && obj.isDragging
+      );
       if (draggingImage) {
         ImageToolHandler.handleDrag(draggingImage.id, e, {
           objects,
@@ -304,9 +348,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         });
       }
     } else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
-        activeTool
-      )
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseMove(e, activeTool, {
         isDrawing,
@@ -346,7 +395,9 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       });
     } else if (activeTool === "move") {
       // Handle image drag end
-      const draggingImage = objects.find(obj => obj.type === 'image' && obj.isDragging);
+      const draggingImage = objects.find(
+        (obj) => obj.type === "image" && obj.isDragging
+      );
       if (draggingImage) {
         ImageToolHandler.stopDragging(draggingImage.id, {
           objects,
@@ -357,9 +408,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     }
     // Handle shape drawing completion
     else if (
-      ["rectangle", "circle", "triangle", "diamond", "hexagon", "arrow"].includes(
-        activeTool
-      )
+      [
+        "rectangle",
+        "circle",
+        "triangle",
+        "diamond",
+        "hexagon",
+        "arrow",
+      ].includes(activeTool)
     ) {
       ShapesToolHandler.onMouseUp(e, activeTool, {
         isDrawing,
@@ -386,11 +442,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     id: string,
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    TextToolHandler.onChangeText(id, e.target.value, { objects, setObjects: wrappedSetObjects });
+    TextToolHandler.onChangeText(id, e.target.value, {
+      objects,
+      setObjects: wrappedSetObjects,
+    });
   };
 
   const handleTextBlur = (id: string) => {
-    TextToolHandler.onFinishEditing(id, { objects, setObjects: wrappedSetObjects });
+    TextToolHandler.onFinishEditing(id, {
+      objects,
+      setObjects: wrappedSetObjects,
+    });
     setActiveTool("move");
   };
 
@@ -398,7 +460,10 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     // Prevent the event from bubbling up to the canvas
     e.stopPropagation();
     // Start editing the text object
-    TextToolHandler.onStartEditing(id, { objects, setObjects: wrappedSetObjects });
+    TextToolHandler.onStartEditing(id, {
+      objects,
+      setObjects: wrappedSetObjects,
+    });
   };
   const handleImageClick = (imageId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -429,6 +494,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   const renderShape = (shape: WhiteboardObject) => {
     switch (shape.type) {
       case "rectangle":
+        console.log(shape.fill)
         return (
           <div
             key={shape.id}
@@ -438,7 +504,8 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: shape.fill,
+              backgroundColor: "black",
+
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
               cursor: activeTool === "move" ? "pointer" : "default",
               zIndex: shape.isSelected ? 10 : 1,
@@ -456,7 +523,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: shape.fill,
+              backgroundColor: "black",
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
               cursor: activeTool === "move" ? "pointer" : "default",
               zIndex: shape.isSelected ? 10 : 1,
@@ -465,42 +532,14 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
           />
         );
       case "triangle":
-      case "diamond":
-      case "hexagon":
-      case "arrow":
-        const pointsArray = shape.points || [];
-        let svgPath = "";
+        // Calculate points for triangle
+        // Using an equilateral triangle centered in the shape's bounding box
+        const trianglePoints = [
+          `${shape.width / 2},0`, // top point
+          `${shape.width},${shape.height}`, // bottom right
+          `0,${shape.height}`, // bottom left
+        ].join(" ");
 
-        if (shape.type === "arrow" && pointsArray.length >= 2) {
-          // Arrow needs special handling with arrowhead
-
-          const [start, end] = pointsArray;
-          // Calculate arrow direction
-          const dx = end.x - start.x;
-          const dy = end.y - start.y;
-          const angle = Math.atan2(dy, dx);
-
-          // Arrow line
-          svgPath = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
-
-          // Add arrowhead
-          const arrowLength = 15;
-          const arrowAngle = Math.PI / 6; // 30 degrees
-
-          const x1 = end.x - arrowLength * Math.cos(angle - arrowAngle);
-          const y1 = end.y - arrowLength * Math.sin(angle - arrowAngle);
-          const x2 = end.x - arrowLength * Math.cos(angle + arrowAngle);
-          const y2 = end.y - arrowLength * Math.sin(angle + arrowAngle);
-
-          svgPath += ` M ${end.x} ${end.y} L ${x1} ${y1} M ${end.x} ${end.y} L ${x2} ${y2}`;
-        } else if (pointsArray.length > 0) {
-          // For other polygon shapes
-          svgPath = `M ${pointsArray[0].x} ${pointsArray[0].y}`;
-          for (let i = 1; i < pointsArray.length; i++) {
-            svgPath += ` L ${pointsArray[i].x} ${pointsArray[i].y}`;
-          }
-          svgPath += " Z"; // Close the path
-        }
         return (
           <div
             key={shape.id}
@@ -515,14 +554,112 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
           >
-            <svg
-              width="100%"
-              height="100%"
-              style={{ position: "absolute", pointerEvents: "none" }}
-            >
-              <path
-                d={svgPath}
-                fill={shape.type === "arrow" ? "none" : shape.fill}
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <polygon
+                points={trianglePoints}
+                fill={shape.fill}
+                stroke={shape.stroke}
+                strokeWidth={shape.strokeWidth}
+              />
+            </svg>
+          </div>
+        );
+      case "diamond":
+        return (
+          <div
+            key={shape.id}
+            className="absolute"
+            style={{
+              left: `${shape.x}px`,
+              top: `${shape.y}px`,
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              backgroundColor: "black",
+              border: `${shape.strokeWidth}px solid ${shape.stroke}`,
+              transform: "rotate(45deg)",
+              transformOrigin: "center center",
+              cursor: activeTool === "move" ? "pointer" : "default",
+              zIndex: shape.isSelected ? 10 : 1,
+            }}
+            onClick={(e) => handleShapeClick(shape.id, e)}
+          />
+        );
+      case "hexagon":
+        // Calculate points for hexagon
+        const halfWidth = shape.width / 2;
+        const halfHeight = shape.height / 2;
+
+        // Create points for hexagon
+        const points = [
+          `${halfWidth * 0.5},0`, // top-left
+          `${halfWidth * 1.5},0`, // top-right
+          `${shape.width},${halfHeight}`, // right
+          `${halfWidth * 1.5},${shape.height}`, // bottom-right
+          `${halfWidth * 0.5},${shape.height}`, // bottom-left
+          `0,${halfHeight}`, // left
+        ].join(" ");
+
+        return (
+          <div
+            key={shape.id}
+            className="absolute"
+            style={{
+              left: `${shape.x}px`,
+              top: `${shape.y}px`,
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              cursor: activeTool === "move" ? "pointer" : "default",
+              zIndex: shape.isSelected ? 10 : 1,
+            }}
+            onClick={(e) => handleShapeClick(shape.id, e)}
+          >
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <polygon
+                points={points}
+                fill={shape.fill}
+                stroke={shape.stroke}
+                strokeWidth={shape.strokeWidth}
+              />
+            </svg>
+          </div>
+        );
+      case "arrow":
+        console.log("Arrow is called")
+        // Calculate dimensions for the arrow
+        const arrowWidth = shape.width;
+        const arrowHeight = shape.height;
+        const headWidth = Math.min(arrowHeight, arrowWidth * 0.3); // Arrow head width is 30% of total width
+        const shaftHeight = arrowHeight * 0.4; // Shaft height is 40% of total height
+
+        // Define arrow points for a right-pointing arrow
+        const arrowPoints = [
+          `0,${(arrowHeight - shaftHeight) / 2}`, // Left of shaft, top
+          `${arrowWidth - headWidth},${(arrowHeight - shaftHeight) / 2}`, // Right of shaft, top
+          `${arrowWidth - headWidth},0`, // Bottom of arrow head
+          `${arrowWidth},${arrowHeight / 2}`, // Arrow tip
+          `${arrowWidth - headWidth},${arrowHeight}`, // Top of arrow head
+          `${arrowWidth - headWidth},${(arrowHeight + shaftHeight) / 2}`, // Right of shaft, bottom
+          `0,${(arrowHeight + shaftHeight) / 2}`, // Left of shaft, bottom
+        ].join(" ");
+
+        return (
+          <div
+            key={shape.id}
+            className="absolute"
+            style={{
+              left: `${shape.x}px`,
+              top: `${shape.y}px`,
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              cursor: activeTool === "move" ? "pointer" : "default",
+              zIndex: shape.isSelected ? 10 : 1,
+            }}
+            onClick={(e) => handleShapeClick(shape.id, e)}
+          >
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <polygon
+                points={arrowPoints}
+                fill={shape.fill}
                 stroke={shape.stroke}
                 strokeWidth={shape.strokeWidth}
               />
@@ -533,6 +670,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return null;
     }
   };
+
+  useEffect(() => {
+    console.log("--------------------");
+    console.log("This is the objects:\n", JSON.stringify(objects, null, 2));
+    console.log(`This is the currentShape : ${currentShape}`);
+  }, [objects, currentShape]);
+
+  useEffect(() => {
+    console.log("***************");
+    console.log(`This is the active tool : ${activeTool}`);
+  }, [activeTool]);
   return (
     <div
       onMouseDown={handleMouseDown}
@@ -542,9 +690,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       className="whiteboard-content relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-rounded p-0 m-0"
     >
       {/* Checkerboard background */}
-      <div
-        className="absolute inset-0"
-      />
+      <div className="absolute inset-0" />
       {/* Render all shape objects */}
       {objects
         .filter((obj) =>
@@ -585,12 +731,16 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
       {/* Render images */}
       {objects
         .filter((obj): obj is ImageObject => obj.type === "image")
-        .map(imageObj => (
+        .map((imageObj) => (
           <div
             key={imageObj.id}
             data-type="image-object"
             data-id={imageObj.id}
-            className={`absolute ${imageObj.isSelected && !imageObj.isDragging ? 'ring-2 ring-blue-500' : ''}`}
+            className={`absolute ${
+              imageObj.isSelected && !imageObj.isDragging
+                ? "ring-2 ring-blue-500"
+                : ""
+            }`}
             style={{
               left: `${imageObj.x}px`,
               top: `${imageObj.y}px`,
@@ -598,7 +748,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
               height: `${imageObj.height}px`,
               cursor: activeTool === "move" ? "move" : "default",
               zIndex: imageObj.isSelected ? 10 : 1,
-              transform: imageObj.isDragging ? 'none' : undefined,
+              transform: imageObj.isDragging ? "none" : undefined,
             }}
             onClick={(e) => handleImageClick(imageObj.id, e)}
           >
@@ -613,16 +763,18 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
             />
 
             {/* Resize handles for selected images - hide during drag */}
-            {imageObj.isSelected && !imageObj.isDragging && activeTool === "move" && (
-              <ShapeResizeHandles
-                id={imageObj.id}
-                x={imageObj.x}
-                y={imageObj.y}
-                width={imageObj.width}
-                height={imageObj.height}
-                onResize={handleResizeStart}
-              />
-            )}
+            {imageObj.isSelected &&
+              !imageObj.isDragging &&
+              activeTool === "move" && (
+                <ShapeResizeHandles
+                  id={imageObj.id}
+                  x={imageObj.x}
+                  y={imageObj.y}
+                  width={imageObj.width}
+                  height={imageObj.height}
+                  onResize={handleResizeStart}
+                />
+              )}
           </div>
         ))}
       {/* Existing frames */}
@@ -754,8 +906,8 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         </div>
       )}
       <div className="fixed bottom-8 left-0 w-full flex justify-center">
-        <BottomPanel 
-          activeTool={activeTool} 
+        <BottomPanel
+          activeTool={activeTool}
           setActiveTool={setActiveTool}
           currentColor={currentColor}
           setCurrentColor={setCurrentColor}

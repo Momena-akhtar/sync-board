@@ -87,7 +87,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             {/* Tools */}
             <div className="flex space-x-6">
                 {tools.map((tool) => (
-                    <div key={tool.key} className="relative flex flex-col items-center">
+                    <div key={tool.key} className="relative flex flex-col items-center ">
                         <button
                             className={`flex items-center gap-1 cursor-pointer text-white hover:opacity-80 transition-all duration-200 ${
                                 activeTool === tool.key || 
@@ -101,6 +101,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
                                 if (tool.hasSubmenu) {
                                     toggleSubmenu(tool.key, e);
                                 } else {
+                                    console.log("Called on line 104 BottomPanel")
                                     setActiveTool(tool.key);
                                     setOpenSubmenu(null);
                                 }

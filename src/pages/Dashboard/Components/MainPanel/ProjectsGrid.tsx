@@ -17,6 +17,7 @@ const ProjectsGrid = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [projects, setProjects] = useState<Project[]>([]);
+  const [showMenu, setShowMenu] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -101,7 +102,41 @@ const ProjectsGrid = () => {
                     </div>
                   )}
                 </div>
-                <div className="text-white font-['Kumbh_Sans'] text-sm mt-2">{proj.name}</div>
+                <div className="flex justify-between items-center">
+                  <div className="text-white font-['Kumbh_Sans'] text-sm mt-2">{proj.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-white text-lg p-1 cursor-pointer relative" onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(showMenu === index ? null : index);
+                    }}>
+                      ⋮
+                      {showMenu === index && (
+                        <div className="absolute left-6 -top-5 mt-1 w-32 bg-[#1E1E1E] rounded-lg shadow-lg py-1 z-50 border border-[#2E2E2E]">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle update
+                              setShowMenu(null);
+                            }}
+                            className="w-full text-left px-4 py-2 cursor-pointer text-xs text-white hover:bg-[#383838] transition-colors"
+                          >
+                            Update
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle delete
+                              setShowMenu(null);
+                            }}
+                            className="w-full text-left px-4 py-2 cursor-pointer text-xs text-red-500 hover:bg-red-500/10 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <div className="flex justify-between items-center mt-1">
                   <div className="text-gray-400 text-xs">Last edited {new Date(proj.updatedAt).toLocaleDateString()}</div>
                   <div className="text-gray-400 text-xs">{proj.role}</div>

@@ -3,14 +3,16 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import React, { useState, useEffect } from 'react';
 import { ExportHandler } from './Handlers/Tools/ExportHandler';
 import { Page } from './Types/WhiteboardTypes';
-import { Collaborator } from '../../services/boardService';
+import { Collaborator, User } from '../../services/boardService';
+import boardService from '../../services/boardService';
+import CollaboratorSearchPopup from './Components/CollaboratorSearchPopup';
 
 interface FeaturesProps {
   title: string;
   whiteboardElements: Page[];
   onBackgroundColorChange: (color: string) => void;
   currentPageIndex: number;
-  createdBy: string;
+  createdBy: User | null;
   collaborators: Collaborator[];
 }
 
@@ -24,22 +26,23 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgr
   const [ownerProfile, setOwnerProfile] = useState<UserProfile | null>(null);
   const [collaboratorProfiles, setCollaboratorProfiles] = useState<UserProfile[]>([]);
   const [showCollaborators, setShowCollaborators] = useState(false);
+  const [showCollaboratorPopup, setShowCollaboratorPopup] = useState(false);
   const [scale, setScale] = useState<number>(1);
   const [format, setFormat] = useState<'PNG' | 'JPG' | 'PDF'>('PNG');
 
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/userProfile/${userId}`, { credentials: 'include' });
-      if (!response.ok) return null;
-      return await response.json();
-    } catch {
-      return null;
-    }
+    const user = await boardService.getUserById(userId);
+    if (!user) return null;
+    return {
+      _id: user._id,
+      username: user.username,
+      profileImage: null // Since User type doesn't have profileImage, default to null
+    };
   };
 
   useEffect(() => {
     if (!createdBy) return;
-    fetchProfile(createdBy).then(profile => {
+    fetchProfile(createdBy._id).then(profile => {
       if (profile) setOwnerProfile(profile);
     });
   }, [createdBy]);
@@ -47,7 +50,11 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgr
   useEffect(() => {
     const fetchAllCollaborators = async () => {
       const profiles = await Promise.all(
-        collaborators.map(collab => fetchProfile(collab.user))
+        collaborators.map(collab => {
+          const user = collab.user;
+          const userId = user._id;
+          return fetchProfile(userId);
+        })
       );
       setCollaboratorProfiles(profiles.filter((p): p is UserProfile => p !== null));
     };
@@ -109,10 +116,23 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgr
           )}
         </div>
 
-        <button className="border border-[#405CE3] text-white text-sm px-3 cursor-pointer py-1 rounded-xl hover:bg-[#405CE3]">
+        <button 
+          className="border border-[#405CE3] text-white text-sm px-3 cursor-pointer py-1 rounded-xl hover:bg-[#405CE3]"
+          onClick={() => setShowCollaboratorPopup(true)}
+        >
           Add Collaborator
         </button>
       </div>
+
+      {showCollaboratorPopup && (
+        <CollaboratorSearchPopup
+          onClose={() => setShowCollaboratorPopup(false)}
+          onCollaboratorAdded={() => {
+            // Refresh the page to show new collaborator
+            window.location.reload();
+          }}
+        />
+      )}
 
       <hr className="border-none h-[2px] w-full my-2 bg-[#383838]" />
 
@@ -168,8 +188,8 @@ const Features: React.FC<FeaturesProps> = ({ title, whiteboardElements, onBackgr
       </div>
 
       <button
-className="mt-5 w-full bg-gradient-to-l border border-[#405CE3] cursor-pointer from-transparent via-[#405CE3] to-[#0A1F66] text-white text-sm font-semibold p-2 rounded-xl hover:opacity-90 transition duration-300"
-onClick={handleExport}
+        className="mt-5 w-full bg-gradient-to-l border border-[#405CE3] cursor-pointer from-transparent via-[#405CE3] to-[#0A1F66] text-white text-sm font-semibold p-2 rounded-xl hover:opacity-90 transition duration-300"
+        onClick={handleExport}
       >
         Export {title}
       </button>

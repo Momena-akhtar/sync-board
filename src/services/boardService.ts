@@ -16,18 +16,26 @@ export interface Board {
   updatedAt: Date;
 }
 
-interface User {
+export interface User {
   _id: string;
   username: string;
   email: string;
   createdAt: string;
   updatedAt: string;
+  authProvider: string;
 }
 
 export interface Collaborator {
-  user: string;
-  permission: 'view' | 'edit';
+  _id: string;
+  permission: string;
+  user: {
+    _id: string;
+    email: string;
+    username: string;
+    authProvider: string;
+  };
 }
+
 
 interface CreateBoardData {
   name: string;
@@ -164,9 +172,41 @@ export const boardService = {
       console.error('Error searching users:', error);
       return [];
     }
-  }
-  
+  },
+  async getUserById(id: string): Promise<User | null> {
+    const userId = typeof id === 'object' ? (id as any)._id : id;
+    console.log("Fetching user by ID:", id);
+    try {
+      const response = await axios.get(`${API_URL}/user/search?id=${userId}`, {
+        withCredentials: true,
+      });
+      const users = response.data;
+      console.log("User fetch response:", response.data);
+      if (Array.isArray(users) && users.length > 0) {
+        return users[0]; // Return the first matched user
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting user by ID:', error);
+      return null;
+    }     
+  },
 
+  // Add a collaborator to a board
+  async addCollaborator(boardId: string, targetUserId: string, permission: 'view' | 'edit'): Promise<void> {
+    try {
+      const response = await axios.post(
+        `${API_URL}/board/${boardId}/collaborator`,
+        { targetUserId, permission },
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error adding collaborator:', error);
+      throw error;
+    }
+  }
 }; 
 
 export default boardService;

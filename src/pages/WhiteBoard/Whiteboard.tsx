@@ -7,14 +7,14 @@ import { Page, WhiteboardObject } from "./Types/WhiteboardTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'react-router-dom';
 import boardService from "../../services/boardService";
-import { Board , Collaborator} from "../../services/boardService";
+import { Board , Collaborator, User} from "../../services/boardService";
 
 const WhiteBoard = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [board, setBoard] = useState<Board | null>(null);
     const [title, setTitle] = useState("Untitled" );
-    const [createdBy, setCreatedBy] = useState("")
+    const [createdBy, setCreatedBy] = useState<User | null>(null);
     const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const [sidePanelVisible, setSidePanelVisible] = useState(true);
     const [featuresPanelVisible, setFeaturesPanelVisible] = useState(true);
@@ -33,8 +33,21 @@ const WhiteBoard = () => {
         const data = await boardService.getBoard(id);
         setBoard(data);
         setTitle(data.name || "Untitled");
-        setCreatedBy(data.createdBy || "null")
-        setCollaborators(data.collaborators || []);
+        if (data.createdBy && typeof data.createdBy === 'object') {
+          setCreatedBy(data.createdBy as User);
+        } else {
+          setCreatedBy(null);
+        }       
+        setCollaborators(data.collaborators?.map(collab => ({
+          _id: collab.user, // Using user ID as _id since it's required
+          permission: collab.permission,
+          user: {
+            _id: collab.user,
+            email: '', // Default empty values for required fields
+            username: '',
+            authProvider: ''
+          }
+        })) || []);
         console.log(data.name)
       } catch (err) {
         console.error('Failed to fetch board:', err);
@@ -44,7 +57,6 @@ const WhiteBoard = () => {
     };
     fetchBoard();
   }, [id]);
-
     const addNewPage = () => {
       setPages(prevPages => [...prevPages, {
         id: uuidv4(),

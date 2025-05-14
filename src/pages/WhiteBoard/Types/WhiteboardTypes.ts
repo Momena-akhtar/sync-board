@@ -13,6 +13,7 @@ export interface ShapeBase extends BaseWhiteboardObject {
   fill: string;
   stroke: string;
   strokeWidth: number;
+  isDragging?: boolean;
 }
 
 export interface RectangleShape extends ShapeBase {

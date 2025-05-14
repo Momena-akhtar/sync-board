@@ -8,7 +8,7 @@ import {
 import { TextToolHandler } from "../Handlers/Tools/TextToolHandler";
 import { FrameToolHandler } from "../Handlers/Tools/FrameToolHandler";
 import { PenToolHandler } from "../Handlers/Tools/PenToolHandler";
-import { ShapesToolHandler } from "../Handlers/Tools/ShapesToolHandler";
+import { ShapesToolHandler, isDrawableShape } from "../Handlers/Tools/ShapesToolHandler";
 import { EraserToolHandler } from "../Handlers/Tools/EraserToolHandler";
 import { ImageToolHandler } from "../Handlers/Tools/ImageToolHandler";
 import ShapeResizeHandles from "../Handlers/Tools/ShapeResizeHandler";
@@ -294,6 +294,18 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
           });
         }
       }
+      // Handle shape dragging start
+      const shapeElement = clickedElement.closest('[data-type="shape-object"]');
+      if (shapeElement) {
+        const shapeId = shapeElement.getAttribute("data-id");
+        if (shapeId) {
+          ShapesToolHandler.startDragging(shapeId, e, {
+            objects,
+            setObjects: wrappedSetObjects,
+            setSelectedShapeId,
+          });
+        }
+      }
     } else if (
       [
         "rectangle",
@@ -347,6 +359,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
           setSelectedShapeId,
         });
       }
+      // Handle shape dragging
+      const draggingShape = objects.find(
+        (obj) => isDrawableShape(obj) && obj.isDragging
+      );
+      if (draggingShape) {
+        ShapesToolHandler.handleDrag(draggingShape.id, e, {
+          objects,
+          setObjects: wrappedSetObjects,
+          setSelectedShapeId,
+        });
+      }
     } else if (
       [
         "rectangle",
@@ -362,6 +385,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         startPos,
         currentShape,
         setCurrentShape,
+        currentColor,
       });
     }
     if (isResizing) {
@@ -405,6 +429,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
           setSelectedShapeId,
         });
       }
+      // Handle shape drag end
+      const draggingShape = objects.find(
+        (obj) => isDrawableShape(obj) && obj.isDragging
+      );
+      if (draggingShape) {
+        ShapesToolHandler.stopDragging(draggingShape.id, {
+          objects,
+          setObjects: wrappedSetObjects,
+          setSelectedShapeId,
+        });
+      }
     }
     // Handle shape drawing completion
     else if (
@@ -426,6 +461,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         setStartPos,
         setCurrentShape,
         setActiveTool,
+        currentColor,
       });
     }
     // Handle shape resize completion
@@ -494,20 +530,20 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   const renderShape = (shape: WhiteboardObject) => {
     switch (shape.type) {
       case "rectangle":
-        console.log(shape.fill)
         return (
           <div
             key={shape.id}
+            data-type="shape-object"
+            data-id={shape.id}
             className="absolute"
             style={{
               left: `${shape.x}px`,
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: "black",
-
+              backgroundColor: shape.fill,
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
-              cursor: activeTool === "move" ? "pointer" : "default",
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: shape.isSelected ? 10 : 1,
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
@@ -517,15 +553,17 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return (
           <div
             key={shape.id}
+            data-type="shape-object"
+            data-id={shape.id}
             className="absolute rounded-full"
             style={{
               left: `${shape.x}px`,
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: "black",
+              backgroundColor: shape.fill,
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
-              cursor: activeTool === "move" ? "pointer" : "default",
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: shape.isSelected ? 10 : 1,
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
@@ -543,13 +581,15 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return (
           <div
             key={shape.id}
+            data-type="shape-object"
+            data-id={shape.id}
             className="absolute"
             style={{
               left: `${shape.x}px`,
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              cursor: activeTool === "move" ? "pointer" : "default",
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: shape.isSelected ? 10 : 1,
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
@@ -568,17 +608,19 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return (
           <div
             key={shape.id}
+            data-type="shape-object"
+            data-id={shape.id}
             className="absolute"
             style={{
               left: `${shape.x}px`,
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              backgroundColor: "black",
+              backgroundColor: shape.fill,
               border: `${shape.strokeWidth}px solid ${shape.stroke}`,
               transform: "rotate(45deg)",
               transformOrigin: "center center",
-              cursor: activeTool === "move" ? "pointer" : "default",
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: shape.isSelected ? 10 : 1,
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
@@ -602,13 +644,15 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return (
           <div
             key={shape.id}
+            data-type="shape-object"
+            data-id={shape.id}
             className="absolute"
             style={{
               left: `${shape.x}px`,
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              cursor: activeTool === "move" ? "pointer" : "default",
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: shape.isSelected ? 10 : 1,
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}
@@ -624,7 +668,6 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
           </div>
         );
       case "arrow":
-        console.log("Arrow is called")
         // Calculate dimensions for the arrow
         const arrowWidth = shape.width;
         const arrowHeight = shape.height;
@@ -645,13 +688,15 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
         return (
           <div
             key={shape.id}
+            data-type="shape-object"
+            data-id={shape.id}
             className="absolute"
             style={{
               left: `${shape.x}px`,
               top: `${shape.y}px`,
               width: `${shape.width}px`,
               height: `${shape.height}px`,
-              cursor: activeTool === "move" ? "pointer" : "default",
+              cursor: activeTool === "move" ? "move" : "default",
               zIndex: shape.isSelected ? 10 : 1,
             }}
             onClick={(e) => handleShapeClick(shape.id, e)}

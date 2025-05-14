@@ -3,7 +3,7 @@ import { WhiteboardObject, RectangleShape, CircleShape, PolygonShape } from '../
 
 type Shape = RectangleShape | CircleShape | PolygonShape;
 
-function isDrawableShape(obj: WhiteboardObject): obj is Shape {
+export function isDrawableShape(obj: WhiteboardObject): obj is Shape & { isDragging?: boolean } {
     return ['rectangle', 'circle', 'triangle', 'diamond', 'hexagon', 'arrow'].includes(obj.type);
 }
 
@@ -32,12 +32,13 @@ interface ShapeToolUpState {
     setStartPos: React.Dispatch<React.SetStateAction<{ x: number, y: number } | null>>;
     setCurrentShape: React.Dispatch<React.SetStateAction<WhiteboardObject | null>>;
     setActiveTool: React.Dispatch<React.SetStateAction<string>>;
+    currentColor?: string;
 }
 
 interface ShapeSelectState {
     objects: WhiteboardObject[];
     setObjects: (objects: WhiteboardObject[]) => void;
-    setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>;
+    setSelectedShapeId?: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 interface ShapeDimensions {
@@ -115,7 +116,8 @@ export class ShapesToolHandler {
             fill: color.replace(/^#/, "rgba(") + ", 0.5)",
             stroke: color,
             strokeWidth: 2,
-            isSelected: false
+            isSelected: false,
+            isDragging: false
         };
 
         switch (shapeType) {
@@ -190,7 +192,8 @@ export class ShapesToolHandler {
             setIsDrawing,
             setStartPos,
             setCurrentShape,
-            setActiveTool 
+            setActiveTool,
+            currentColor 
         } = state;
 
         if (!isDrawing || !currentShape || !isDrawableShape(currentShape)) return;
@@ -209,7 +212,8 @@ export class ShapesToolHandler {
                 currentShape.x - STANDARD_SHAPE_SIZE / 2,
                 currentShape.y - STANDARD_SHAPE_SIZE / 2,
                 STANDARD_SHAPE_SIZE,
-                STANDARD_SHAPE_SIZE
+                STANDARD_SHAPE_SIZE,
+                currentColor
             );
         } else {
             // Use the current shape as is (it was created by dragging)
@@ -261,6 +265,50 @@ export class ShapesToolHandler {
             }
             
             return updatedObj;
+        });
+        
+        setObjects(updatedObjects);
+    }
+
+    static startDragging(shapeId: string, e: React.MouseEvent, state: ShapeSelectState) {
+        const { objects, setObjects } = state;
+        
+        const updatedObjects = objects.map(obj => {
+            if (obj.id === shapeId && isDrawableShape(obj)) {
+                return { ...obj, isDragging: true };
+            }
+            return obj;
+        });
+        
+        setObjects(updatedObjects);
+    }
+
+    static handleDrag(shapeId: string, e: React.MouseEvent, state: ShapeSelectState) {
+        const { objects, setObjects } = state;
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        const updatedObjects = objects.map(obj => {
+            if (obj.id === shapeId && isDrawableShape(obj)) {
+                const dx = currentX - obj.x;
+                const dy = currentY - obj.y;
+                return { ...obj, x: obj.x + dx, y: obj.y + dy };
+            }
+            return obj;
+        });
+        
+        setObjects(updatedObjects);
+    }
+
+    static stopDragging(shapeId: string, state: ShapeSelectState) {
+        const { objects, setObjects } = state;
+        
+        const updatedObjects = objects.map(obj => {
+            if (obj.id === shapeId && isDrawableShape(obj)) {
+                return { ...obj, isDragging: false };
+            }
+            return obj;
         });
         
         setObjects(updatedObjects);

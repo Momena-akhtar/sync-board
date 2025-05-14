@@ -1,5 +1,10 @@
-import { Page, WhiteboardObject } from '../pages/WhiteBoard/Types/WhiteboardTypes';
-import axios from 'axios';
+import {
+  Page,
+  WhiteboardObject,
+} from "../pages/WhiteBoard/Types/WhiteboardTypes";
+import { handleBoardJoin } from "../sockets/socketServices";
+
+import axios from "axios";
 
 export interface Board {
   _id: string;
@@ -7,14 +12,14 @@ export interface Board {
   createdBy: string;
   collaborators: Array<{
     user: string;
-    permission: 'view' | 'edit';
+    permission: "view" | "edit";
   }>;
   pages: Array<{
     pageNumber: number;
     whiteBoardObjects: WhiteboardObject[];
   }>;
   thumbnail_img: string;
-  security: 'public' | 'private';
+  security: "public" | "private";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,45 +44,50 @@ export interface Collaborator {
   };
 }
 
-
 interface CreateBoardData {
   name: string;
-  security: 'private' | 'public';
+  security: "private" | "public";
   collaborators: Collaborator[];
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = "http://localhost:5000/api";
 
 export const boardService = {
   // Get all boards for the current user
   async getBoards(): Promise<Board[]> {
     const response = await fetch(`${API_URL}/getBoards`, {
-      credentials: 'include'
+      credentials: "include",
     });
     if (!response.ok) {
-      throw new Error('Failed to fetch boards');
+      throw new Error("Failed to fetch boards");
     }
+
     return response.json();
   },
 
   // Get a single board by ID
   async getBoard(id: string): Promise<Board> {
     const response = await fetch(`${API_URL}/board/${id}`, {
-      credentials: 'include'
+      credentials: "include",
     });
     if (!response.ok) {
-      throw new Error('Failed to fetch board');
+      throw new Error("Failed to fetch board");
     }
+
+    await handleBoardJoin(id);
+
     return response.json();
   },
 
   // Create a new board
   async createBoard(boardData: CreateBoardData): Promise<{ _id: string }> {
     try {
-      const response = await axios.post(`${API_URL}/createBoard`, boardData, { withCredentials: true});
+      const response = await axios.post(`${API_URL}/createBoard`, boardData, {
+        withCredentials: true,
+      });
       return response.data;
     } catch (error) {
-      console.error('Error creating board:', error);
+      console.error("Error creating board:", error);
       throw error;
     }
   },
@@ -87,31 +97,31 @@ export const boardService = {
     id: string,
     name: string,
     pages: Page[],
-    security?: 'public' | 'private'
+    security?: "public" | "private"
   ): Promise<Board> {
     // Convert pages to shapes format
-    const shapes = pages.map(page => ({
+    const shapes = pages.map((page) => ({
       id: page.id,
       name: page.name,
       objects: page.objects,
-      backgroundColor: page.backgroundColor
+      backgroundColor: page.backgroundColor,
     }));
 
     const response = await fetch(`${API_URL}/boards/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify({
         name,
         shapes,
-        ...(security && { security })
+        ...(security && { security }),
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update board');
+      throw new Error("Failed to update board");
     }
     return response.json();
   },
@@ -119,23 +129,26 @@ export const boardService = {
   // Delete a board
   async deleteBoard(id: string): Promise<void> {
     const response = await fetch(`${API_URL}/board/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
+      method: "DELETE",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error('Failed to delete board');
+      throw new Error("Failed to delete board");
     }
   },
 
   // Search boards by name
   async searchBoards(query: string): Promise<Board[]> {
-    const response = await fetch(`${API_URL}/boards/search/name?q=${encodeURIComponent(query)}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(
+      `${API_URL}/boards/search/name?q=${encodeURIComponent(query)}`,
+      {
+        credentials: "include",
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to search boards');
+      throw new Error("Failed to search boards");
     }
     return response.json();
   },
@@ -143,41 +156,43 @@ export const boardService = {
   // Update board thumbnail
   async updateThumbnail(id: string, thumbnailData: string): Promise<Board> {
     const response = await fetch(`${API_URL}/boards/${id}/thumbnail`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify({ thumbnail_img: thumbnailData }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update thumbnail');
+      throw new Error("Failed to update thumbnail");
     }
     return response.json();
   },
-
 
   // Search users by name or email
   async searchUsers(query: string): Promise<User[]> {
     try {
       // Determine if it's an email or username
-      const isEmail = query.includes('@');
-  
-      const paramName = isEmail ? 'email' : 'username';
-  
-      const response = await axios.get(`${API_URL}/user/search?${paramName}=${encodeURIComponent(query)}`, {
-        withCredentials: true,
-      });
-  
+      const isEmail = query.includes("@");
+
+      const paramName = isEmail ? "email" : "username";
+
+      const response = await axios.get(
+        `${API_URL}/user/search?${paramName}=${encodeURIComponent(query)}`,
+        {
+          withCredentials: true,
+        }
+      );
+
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error('Error searching users:', error);
+      console.error("Error searching users:", error);
       return [];
     }
   },
   async getUserById(id: string): Promise<User | null> {
-    const userId = typeof id === 'object' ? (id as any)._id : id;
+    const userId = typeof id === "object" ? (id as any)._id : id;
     console.log("Fetching user by ID:", id);
     try {
       const response = await axios.get(`${API_URL}/user/search?id=${userId}`, {
@@ -191,13 +206,17 @@ export const boardService = {
         return null;
       }
     } catch (error) {
-      console.error('Error getting user by ID:', error);
+      console.error("Error getting user by ID:", error);
       return null;
-    }     
+    }
   },
 
   // Add a collaborator to a board
-  async addCollaborator(boardId: string, targetUserId: string, permission: 'view' | 'edit'): Promise<void> {
+  async addCollaborator(
+    boardId: string,
+    targetUserId: string,
+    permission: "view" | "edit"
+  ): Promise<void> {
     try {
       const response = await axios.post(
         `${API_URL}/board/${boardId}/collaborator`,
@@ -206,10 +225,10 @@ export const boardService = {
       );
       return response.data;
     } catch (error) {
-      console.error('Error adding collaborator:', error);
+      console.error("Error adding collaborator:", error);
       throw error;
     }
-  }
-}; 
+  },
+};
 
 export default boardService;

@@ -8,14 +8,13 @@ const App = () => {
   return (
     <Router>
       <div className="w-screen h-screen">
-      <Routes>
-      <Route path="/" element={<FrontPage />} />
-      <Route path="/auth" element={<AuthPage closeModal={() => {}} />} />
-      <Route path="/dashboard/*" element={<Dashboard />} /> 
-      <Route path="/whiteboard" element={<Whiteboard />} />
-      <Route path="/whiteboard/:id" element={<Whiteboard />} />
-    </Routes>
-
+        <Routes>
+          <Route path="/" element={<FrontPage />} />
+          <Route path="/auth" element={<AuthPage closeModal={() => {}} />} />
+          <Route path="/dashboard/*" element={<Dashboard />} />
+          <Route path="/whiteboard" element={<Whiteboard />} />
+          <Route path="/whiteboard/:id" element={<Whiteboard />} />
+        </Routes>
       </div>
     </Router>
   );

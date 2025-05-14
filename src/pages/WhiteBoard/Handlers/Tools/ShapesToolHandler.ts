@@ -107,19 +107,13 @@ export class ShapesToolHandler {
         height: number,
         color: string = "#ffffff"
     ): RectangleShape | CircleShape | PolygonShape {
-        // Convert hex to rgb for fill color
-        const r = parseInt(color.slice(1, 3), 16);
-        const g = parseInt(color.slice(3, 5), 16);
-        const b = parseInt(color.slice(5, 7), 16);
-        const fillColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
-
         const baseShape = {
             id: uuidv4(),
             x,
             y,
             width: Math.max(width, 0),
             height: Math.max(height, 0),
-            fill: fillColor,
+            fill: color,
             stroke: color,
             strokeWidth: 2,
             isSelected: false,

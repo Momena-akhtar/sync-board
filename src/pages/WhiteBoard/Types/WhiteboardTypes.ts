@@ -107,6 +107,7 @@ export interface ToolHandlerState {
 export interface Page {
   id: string;
   name: string;
+  pageNumber: number;
   objects: WhiteboardObject[];
   backgroundColor: string;
 }

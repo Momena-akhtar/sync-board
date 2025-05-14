@@ -16,9 +16,10 @@ import ShapeResizeHandles from "../Handlers/Tools/ShapeResizeHandler";
 interface MainBoardProps {
   objects: WhiteboardObject[];
   setObjects: (objects: WhiteboardObject[]) => void;
+  currentPageIndex: number;
 }
 
-const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
+const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects, currentPageIndex }) => {
   // Wrap setObjects to make it compatible with React state setters
   const wrappedSetObjects: React.Dispatch<
     React.SetStateAction<WhiteboardObject[]>
@@ -66,6 +67,8 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
 
   // Clear selection when switching pages
   useEffect(() => {
+    console.log('Page changed to:', currentPageIndex);
+    console.log('Objects in new page:', objects);
     setSelectedShapeId(null);
     setCurrentShape(null);
     setCurrentFrame(null);
@@ -73,7 +76,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     setIsDrawing(false);
     setIsErasing(false);
     setIsResizing(false);
-  }, [objects]);
+  }, [currentPageIndex, objects]);
 
   // Focus the text input when a new text object is created
   useEffect(() => {
@@ -240,6 +243,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
     setResizeData(null);
   };
   const handleMouseDown = (e: React.MouseEvent) => {
+    console.log('Mouse down on page', currentPageIndex);
     // Check if we clicked on an existing text object first
     const clickedElement = e.target as HTMLElement;
     const textBoxElement = clickedElement.closest('[data-type="text-object"]');
@@ -328,6 +332,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    console.log('Mouse move on page', currentPageIndex);
     if (activeTool === "frame") {
       FrameToolHandler.onMouseMove(e, {
         isDrawing,
@@ -394,6 +399,7 @@ const MainBoard: React.FC<MainBoardProps> = ({ objects, setObjects }) => {
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
+    console.log('Mouse up on page', currentPageIndex);
     if (activeTool === "frame") {
       FrameToolHandler.onMouseUp(e, {
         isDrawing,

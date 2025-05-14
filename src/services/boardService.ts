@@ -9,7 +9,10 @@ export interface Board {
     user: string;
     permission: 'view' | 'edit';
   }>;
-  shapes: WhiteboardObject[];
+  pages: Array<{
+    pageNumber: number;
+    whiteBoardObjects: WhiteboardObject[];
+  }>;
   thumbnail_img: string;
   security: 'public' | 'private';
   createdAt: Date;

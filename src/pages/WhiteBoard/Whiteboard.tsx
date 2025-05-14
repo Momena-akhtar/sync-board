@@ -13,7 +13,7 @@ const WhiteBoard = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [board, setBoard] = useState<Board | null>(null);
-    const [title, setTitle] = useState("Untitled" );
+    const [title, setTitle] = useState("Untitled");
     const [createdBy, setCreatedBy] = useState<User | null>(null);
     const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const [sidePanelVisible, setSidePanelVisible] = useState(true);
@@ -21,63 +21,125 @@ const WhiteBoard = () => {
     const [pages, setPages] = useState<Page[]>([{
       id: uuidv4(),
       name: "Page 1",
+      pageNumber: 1,
       objects: [],
       backgroundColor: "#1E1E1E"
     }]);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     
-  useEffect(() => {
-    const fetchBoard = async () => {
-      try {
-        if (!id) return; // No id? Exit
-        const data = await boardService.getBoard(id);
-        setBoard(data);
-        setTitle(data.name || "Untitled");
-        if (data.createdBy && typeof data.createdBy === 'object') {
-          setCreatedBy(data.createdBy as User);
-        } else {
-          setCreatedBy(null);
-        }       
-        setCollaborators(data.collaborators?.map(collab => ({
-          _id: collab.user, // Using user ID as _id since it's required
-          permission: collab.permission,
-          user: {
-            _id: collab.user,
-            email: '', // Default empty values for required fields
-            username: '',
-            authProvider: ''
+    useEffect(() => {
+      const fetchBoard = async () => {
+        try {
+          if (!id) return;
+          const data = await boardService.getBoard(id);
+          setBoard(data);
+          setTitle(data.name || "Untitled");
+
+          // Convert backend pages to frontend format
+          if (data.pages && Array.isArray(data.pages)) {
+            console.log('Fetched whiteboard from backend:', data);
+            const formattedPages = data.pages.map((page: any) => ({
+              id: uuidv4(),
+              name: `Page ${page.pageNumber}`,
+              pageNumber: page.pageNumber,
+              objects: page.whiteBoardObjects || [],
+              backgroundColor: "#1E1E1E"
+            }));
+            console.log('Formatted whiteboard pages:', formattedPages);
+            setPages(formattedPages);
           }
-        })) || []);
-        console.log(data.name)
-      } catch (err) {
-        console.error('Failed to fetch board:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBoard();
-  }, [id]);
+
+          if (data.createdBy && typeof data.createdBy === 'object') {
+            setCreatedBy(data.createdBy as User);
+          } else {
+            setCreatedBy(null);
+          }       
+          setCollaborators(data.collaborators?.map(collab => ({
+            _id: collab.user,
+            permission: collab.permission,
+            user: {
+              _id: collab.user,
+              email: '',
+              username: '',
+              authProvider: ''
+            }
+          })) || []);
+        } catch (err) {
+          console.error('Failed to fetch board:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchBoard();
+    }, [id]);
+
+    // Add effect to log whiteboard state changes
+    useEffect(() => {
+      console.log('Whiteboard State Update:');
+      console.log('Title:', title);
+      console.log('Current Page Index:', currentPageIndex);
+      console.log('Total Pages:', pages.length);
+      console.log('All Pages:', pages);
+      console.log('Current Page:', pages[currentPageIndex]);
+    }, [title, currentPageIndex, pages]);
+
     const addNewPage = () => {
-      setPages(prevPages => [...prevPages, {
-        id: uuidv4(),
-        name: `Page ${prevPages.length + 1}`,
-        objects: [],
-        backgroundColor: "#1E1E1E"
-      }]);
+      console.log('Adding new page to whiteboard. Current state:', {
+        title,
+        totalPages: pages.length,
+        pages
+      });
+      setPages(prevPages => {
+        const newPages = [...prevPages, {
+          id: uuidv4(),
+          name: `Page ${prevPages.length + 1}`,
+          pageNumber: prevPages.length + 1,
+          objects: [],
+          backgroundColor: "#1E1E1E"
+        }];
+        console.log('Whiteboard after adding new page:', {
+          title,
+          totalPages: newPages.length,
+          pages: newPages
+        });
+        return newPages;
+      });
       setCurrentPageIndex(pages.length);
     };
 
     const updateBackgroundColor = (color: string) => {
+      console.log('Updating whiteboard page background:', {
+        pageIndex: currentPageIndex,
+        newColor: color,
+        currentState: {
+          title,
+          totalPages: pages.length,
+          currentPage: pages[currentPageIndex]
+        }
+      });
       setPages(prevPages => {
         const newPages = [...prevPages];
         newPages[currentPageIndex] = {
           ...newPages[currentPageIndex],
           backgroundColor: color
         };
+        console.log('Whiteboard after background update:', {
+          title,
+          totalPages: newPages.length,
+          pages: newPages
+        });
         return newPages;
       });
     };
 
+    const updateBoard = async () => {
+      if (!id) return;
+      try {
+        await boardService.updateBoard(id, title, pages);
+      } catch (err) {
+        console.error('Failed to update board:', err);
+      }
+    };
 
     return (
       <div className="flex h-screen w-screen bg-[#1E1E1E]">
@@ -106,19 +168,23 @@ const WhiteBoard = () => {
         </div>
   
         {/* Middle Section (MainBoard) - scrollable area */}
-        <div className="flex-1 p-4 h-full overflow-auto" style={{ backgroundColor: pages[currentPageIndex].backgroundColor }}>
+        <div className="flex-1 p-4 h-full overflow-auto" style={{ backgroundColor: pages[currentPageIndex]?.backgroundColor || "#1E1E1E" }}>
           <MainBoard 
-            objects={pages[currentPageIndex].objects}
+            objects={pages[currentPageIndex]?.objects || []}
             setObjects={(newObjects: WhiteboardObject[]) => {
+              console.log('Updating objects for page', currentPageIndex);
+              console.log('New objects:', newObjects);
               setPages(prevPages => {
                 const newPages = [...prevPages];
                 newPages[currentPageIndex] = {
                   ...newPages[currentPageIndex],
                   objects: newObjects
                 };
+                console.log('Updated pages after objects change:', newPages);
                 return newPages;
               });
             }}
+            currentPageIndex={currentPageIndex}
           />
         </div>
   

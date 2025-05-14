@@ -60,7 +60,6 @@ export const handleDrawReceive = (onDraw: (data: any) => void) => {
   };
 };
 
-
 /**
  * 
  * Place the following useEffect where u will be drawing data and listening for newData
@@ -83,4 +82,143 @@ export const handleDrawReceive = (onDraw: (data: any) => void) => {
     return cleanup;
   }, []); // [] means this effect runs only once (on mount)
  */
-export { handleBoardJoin, emitDraw };
+
+const emitErase = (eraseData: onDrawDataInput) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket not available to emit erase event");
+    return;
+  }
+
+  socket.emit("erase", eraseData);
+};
+
+const handleEraseReceive = (onErase: (data: any) => void) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket connection not available for erase event.");
+    return;
+  }
+
+  const eraseListener = (data: any) => {
+    console.log("[Erase Event Received]:", data);
+    onErase(data); // Pass the data to your component
+  };
+
+  socket.on("erased", eraseListener);
+
+  // Cleanup listener
+  return () => {
+    socket.off("erased", eraseListener);
+  };
+};
+
+const emitEditShape = (editData: onDrawDataInput) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket not available to emit editShape event");
+    return;
+  }
+
+  socket.emit("editShape", editData);
+};
+
+const handleEditShapeReceive = (onEdit: (data: any) => void) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket connection not available for editShape event.");
+    return;
+  }
+
+  const editListener = (data: any) => {
+    console.log("[Edit Shape Event Received]:", data);
+    onEdit(data); // Pass the data to your component
+  };
+
+  socket.on("editedShape", editListener);
+
+  // Cleanup listener
+  return () => {
+    socket.off("editedShape", editListener);
+  };
+};
+
+const emitAddText = (textData: onDrawDataInput) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket not available to emit addText event");
+    return;
+  }
+
+  socket.emit("addText", textData);
+};
+
+const handleAddTextReceive = (onTextAdd: (data: any) => void) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket connection not available for addText event.");
+    return;
+  }
+
+  const textListener = (data: any) => {
+    console.log("[Add Text Event Received]:", data);
+    onTextAdd(data); // Pass the data to your component
+  };
+
+  socket.on("addedText", textListener);
+
+  // Cleanup listener
+  return () => {
+    socket.off("addedText", textListener);
+  };
+};
+
+const emitBackspaceText = (textData: onDrawDataInput) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket not available to emit backspaceText event");
+    return;
+  }
+
+  socket.emit("backspaceText", textData);
+};
+const handleBackspaceTextReceive = (onTextBackspace: (data: any) => void) => {
+  const socket = getSocket();
+
+  if (!socket) {
+    console.error("Socket connection not available for backspaceText event.");
+    return;
+  }
+
+  const backspaceListener = (data: any) => {
+    console.log("[Backspace Text Event Received]:", data);
+    onTextBackspace(data); // Send data to your component handler
+  };
+
+  socket.on("backspacedText", backspaceListener);
+
+  // Cleanup listener
+  return () => {
+    socket.off("backspacedText", backspaceListener);
+  };
+};
+
+export {
+  handleBoardJoin,
+  emitDraw,
+  emitEditShape,
+  emitErase,
+  handleEditShapeReceive,
+  handleEraseReceive,
+  emitAddText,
+  emitBackspaceText,
+  handleAddTextReceive,
+  handleBackspaceTextReceive,
+};

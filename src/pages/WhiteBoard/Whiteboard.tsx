@@ -31,21 +31,30 @@ const WhiteBoard = () => {
       const fetchBoard = async () => {
         try {
           if (!id) return;
-          setLoading(true);
-          const response = await boardService.getBoard(id);
-          console.log('Fetched board:', response);
-          setBoard(response);
-          setTitle(response.name);
-          
-          // Handle createdBy user
-          if (response.createdBy && typeof response.createdBy === 'object') {
-            setCreatedBy(response.createdBy as User);
-          } else {
-            setCreatedBy(null);
+          const data = await boardService.getBoard(id);
+          setBoard(data);
+          setTitle(data.name || "Untitled");
+
+          // Convert backend pages to frontend format
+          if (data.pages && Array.isArray(data.pages)) {
+            console.log('Fetched whiteboard from backend:', data);
+            const formattedPages = data.pages.map((page: any) => ({
+              id: uuidv4(),
+              name: `Page ${page.pageNumber}`,
+              pageNumber: page.pageNumber,
+              objects: page.whiteBoardObjects || [],
+              backgroundColor: "#1E1E1E"
+            }));
+            console.log('Formatted whiteboard pages:', formattedPages);
+            setPages(formattedPages);
           }
 
-          // Handle collaborators
-          const formattedCollaborators = response.collaborators?.map(collab => ({
+          if (data.createdBy && typeof data.createdBy === 'object') {
+            setCreatedBy(data.createdBy as User);
+          } else {
+            setCreatedBy(null);
+          }       
+          setCollaborators(data.collaborators?.map(collab => ({
             _id: collab.user,
             permission: collab.permission,
             user: {
@@ -54,31 +63,9 @@ const WhiteBoard = () => {
               username: '',
               authProvider: ''
             }
-          })) || [];
-          setCollaborators(formattedCollaborators);
-
-          // Transform the pages from the database into our Page type
-          const transformedPages = response.pages.map((page: any, index: number) => ({
-            id: page.id,
-            name: page.name,
-            pageNumber: index + 1,
-            objects: page.objects.map((obj: any) => ({
-              ...obj,
-              // Ensure all required properties are present
-              isDragging: false,
-              isSelected: false,
-              // Add any missing properties with default values
-              strokeWidth: obj.strokeWidth || 2,
-              stroke: obj.stroke || obj.fill || '#000000',
-              fill: obj.fill || 'transparent'
-            })),
-            backgroundColor: page.backgroundColor || "#1E1E1E"
-          }));
-
-          setPages(transformedPages);
-          setCurrentPageIndex(0);
-        } catch (error) {
-          console.error('Error fetching board:', error);
+          })) || []);
+        } catch (err) {
+          console.error('Failed to fetch board:', err);
         } finally {
           setLoading(false);
         }

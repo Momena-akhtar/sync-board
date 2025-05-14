@@ -43,7 +43,10 @@ export interface Collaborator {
 interface CreateBoardData {
   name: string;
   security: 'private' | 'public';
-  collaborators: Collaborator[];
+  collaborators: Array<{
+    user: string;
+    permission: 'view' | 'edit';
+  }>;
 }
 
 const API_URL = 'http://localhost:5000/api';

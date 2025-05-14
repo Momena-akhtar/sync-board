@@ -26,7 +26,7 @@ const SidePanel: React.FC<SidePanelProps> = ({
                     type="text" 
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}    
-                    className="bg-transparent rounded-lg outline-none border border-[#383838] p-2 text-white"
+                    className="relative w-[80%] bg-transparent rounded-lg outline-none border border-[#383838] p-2 text-white"
                 />
                 <svg 
                     className="w-4 h-4 ml-2 cursor-pointer" 

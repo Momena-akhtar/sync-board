@@ -81,12 +81,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ closeModal }) => {
         await handleBackendAuth(user);
       }
     };
-    const handleGuestLogin = async () => {
-      const user = await signInAsGuest();
-      if (user) {
-        await handleBackendAuth(user);
-      }
-    };
+
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-opacity-30 backdrop-blur-lg z-50">
             <div className="bg-white p-8 rounded-2xl shadow-xl w-[400px] relative">

@@ -1,18 +1,25 @@
+import { connectSocket, disconnectSocket } from "./sockets/socket";
+
+connectSocket;
 const API_URL = 'http://localhost:5000/api';
 
 export const authService = {
-  async register(userData: { username: string; email: string; password: string }) {
+  async register(userData: {
+    username: string;
+    email: string;
+    password: string;
+  }) {
     const response = await fetch(`${API_URL}/userRegister`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify(userData),
     });
 
     if (!response.ok) {
-      throw new Error('Registration failed');
+      throw new Error("Registration failed");
     }
 
     return response.json();

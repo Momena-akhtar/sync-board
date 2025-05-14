@@ -1,5 +1,6 @@
 import { Page, WhiteboardObject } from '../pages/WhiteBoard/Types/WhiteboardTypes';
 import axios from 'axios';
+import { handleBoardJoin } from './sockets/socketService';
 
 export interface Board {
   _id: string;
@@ -71,6 +72,7 @@ export const boardService = {
     if (!response.ok) {
       throw new Error('Failed to fetch board');
     }
+    await handleBoardJoin(id)
     return response.json();
   },
 

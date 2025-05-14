@@ -89,7 +89,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ closeModal }) => {
     };
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-opacity-30 backdrop-blur-lg z-50">
-            <div className="bg-[#f5ebd3] p-8 rounded-2xl shadow-xl w-[400px] relative">
+            <div className="bg-white p-8 rounded-2xl shadow-xl w-[400px] relative">
               {/* Close Button */}
           <button
             onClick={closeModal}

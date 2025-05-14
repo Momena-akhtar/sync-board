@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { WhiteboardObject, RectangleShape, CircleShape, PolygonShape } from '../../Types/WhiteboardTypes';
+import { handleDrawReceive, emitDraw } from '../../../../services/sockets/socketService';
+
 
 type Shape = RectangleShape | CircleShape | PolygonShape;
 
@@ -41,14 +43,8 @@ interface ShapeSelectState {
     setSelectedShapeId?: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-interface ShapeDimensions {
-    width: number;
-    height: number;
-}
 
-function hasShapeDimensions(shape: WhiteboardObject): shape is WhiteboardObject & ShapeDimensions {
-    return 'width' in shape && 'height' in shape;
-}
+
 
 // Standard size for shapes when simply clicked (not dragged)
 const STANDARD_SHAPE_SIZE = 120;
@@ -184,6 +180,7 @@ export class ShapesToolHandler {
     }
 
     static onMouseUp(e: React.MouseEvent, shapeType: string, state: ShapeToolUpState) {
+        console.log("onMouseUp")
         const { 
             isDrawing, 
             currentShape, 
@@ -225,6 +222,19 @@ export class ShapesToolHandler {
         setStartPos(null);
         setCurrentShape(null);
         setActiveTool("move");
+        console.log("emitting draw event")
+        console.log("this is board id: ",window.location.pathname.split('/').pop())
+        emitDraw({
+            boardId: window.location.pathname.split('/').pop() || '',
+            updatedBoardPage: {
+                pageNumber: 0,
+                whiteBoardObjects: [finalShape]
+            }
+        });
+        console.log("final shape: ", finalShape)
+        handleDrawReceive((data) => {
+            console.log("data: ", data)
+        });
     }
 
     static selectShape(id: string, objects: WhiteboardObject[], setObjects: React.Dispatch<React.SetStateAction<WhiteboardObject[]>>) {

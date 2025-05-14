@@ -38,7 +38,7 @@ export const authService = {
     if (!response.ok) {
       throw new Error('Login failed');
     }
-
+    connectSocket();
     return response.json();
   },
 
@@ -55,19 +55,20 @@ export const authService = {
     if (!response.ok) {
       throw new Error('Failed to authenticate with backend');
     }
-
+    connectSocket();
     return response.json();
   },
 
   async logout() {
-    console.log('Logging out');
+    console.log("Logging out");
     const response = await fetch(`${API_URL}/userLogout`, {
-      credentials: 'include',   // <-- THIS sends cookies (token)
+      credentials: "include", // <-- THIS sends cookies (token)
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to logout');
+      throw new Error("Failed to logout");
     }
+    disconnectSocket();
     return response.json();
   },
 
